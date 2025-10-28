@@ -39,6 +39,9 @@ class RequestForm
                     ->relationship('technician', 'name'),
                 DateTimePicker::make('handled_at'),
                 FileUpload::make('photo')
+                    ->image()
+                    ->disk('public')
+                    ->directory('requests')
                     ->label('Foto Kerusakan'),
                 Textarea::make('description')
                     ->required()

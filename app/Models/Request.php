@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -54,6 +55,29 @@ class Request extends Model
         static::creating(function ($request) {
             if (empty($request->request_date)) {
                 $request->request_date = now()->toDateString();
+            }
+        });
+    }
+
+    /**
+     * Hapus foto saat permintaan dihapus
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($request) {
+            if ($request->photo && Storage::disk('public')->exists($request->photo)) {
+                Storage::disk('public')->delete($request->photo);
+            }
+        });
+
+        static::updating(function ($request) {
+            if ($request->isDirty('photo')) {
+                $oldPhoto = $request->getOriginal('photo');
+                if ($oldPhoto && Storage::disk('public')->exists($oldPhoto)) {
+                    Storage::disk('public')->delete($oldPhoto);
+                }
             }
         });
     }
