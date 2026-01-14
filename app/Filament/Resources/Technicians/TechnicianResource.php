@@ -18,6 +18,12 @@ class TechnicianResource extends Resource
 {
     protected static ?string $model = Technician::class;
 
+    protected static ?string $navigationLabel = 'Teknisi';
+
+    protected static ?string $modelLabel = 'Teknisi';
+
+    protected static ?string $pluralModelLabel = 'Teknisi';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema

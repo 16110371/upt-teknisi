@@ -17,6 +17,7 @@ class RequestsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('requester_name')
                     ->label('Nama')
@@ -34,6 +35,13 @@ class RequestsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('status')
+                    ->color(fn(string $state): string => match ($state) {
+                        'Pending' => 'warning',   // kuning
+                        'Proses' => 'info',       // biru muda
+                        'Selesai' => 'success',   // hijau
+                        'Dibatalkan' => 'danger', // merah
+                        default => 'gray',        // warna netral
+                    })
                     ->badge(),
                 TextColumn::make('technician.name')
                     ->label('Teknisi')

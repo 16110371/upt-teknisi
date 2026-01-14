@@ -21,6 +21,8 @@ class Request extends Model
         'technician_id',
         'handled_at',
         'photo',
+        'completed_at',
+        'technician_note',
     ];
 
     /**
@@ -78,6 +80,10 @@ class Request extends Model
                 if ($oldPhoto && Storage::disk('public')->exists($oldPhoto)) {
                     Storage::disk('public')->delete($oldPhoto);
                 }
+            }
+
+            if ($request->isDirty('status') && $request->status === 'Proses') {
+                $request->handled_at = now();
             }
         });
     }

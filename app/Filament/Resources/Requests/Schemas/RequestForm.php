@@ -21,7 +21,6 @@ class RequestForm
                 TextInput::make('requester_name')
                     ->label('Nama')
                     ->required(),
-                TextInput::make('requester_contact'),
                 Select::make('category_id')
                     ->label('Kategori')
                     ->relationship('category', 'name')
@@ -31,20 +30,26 @@ class RequestForm
                     ->relationship('location', 'name')
                     ->required(),
                 Select::make('status')
-                    ->options(['Pending' => 'Pending', 'Dikerjakan' => 'Dikerjakan', 'Selesai' => 'Selesai'])
+                    ->options(['Pending' => 'Pending', 'Proses' => 'Proses', 'Selesai' => 'Selesai'])
                     ->default('Pending')
                     ->required(),
                 Select::make('technician_id')
                     ->label('Teknisi')
                     ->relationship('technician', 'name'),
                 DateTimePicker::make('handled_at'),
+                DateTimePicker::make('completed_at'),
                 FileUpload::make('photo')
                     ->image()
                     ->disk('public')
                     ->directory('requests')
                     ->label('Foto Kerusakan'),
                 Textarea::make('description')
-                    ->required()
+                    ->label('Deskripsi')
+                    ->required(),
+                Textarea::make('technician_note')
+                    ->label('Catatan Teknisi')
+                    ->placeholder('Tuliskan hasil pekerjaan, kendala, atau catatan lainnya...')
+                    ->rows(4)
                     ->columnSpanFull(),
             ]);
     }

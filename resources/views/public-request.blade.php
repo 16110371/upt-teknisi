@@ -132,7 +132,7 @@
 
     <!-- Footer -->
     <footer class="mt-10 text-center text-gray-600 text-sm">
-        <p>Powered by <span class="font-semibold text-blue-600">UPT</span> © 2025</p>
+        <p>Powered by <span class="font-semibold text-blue-600">UPT</span> © {{ date('Y') }}</p>
     </footer>
 
 </body>
