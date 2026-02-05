@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Location;
 use Illuminate\Http\Request as HttpRequest;
 
+
 class PublicRequestController extends Controller
 {
     public function create()
@@ -29,7 +30,7 @@ class PublicRequestController extends Controller
             'photo' => 'nullable|image|max:2048',
         ]);
 
-        if ($request->hasFile('photo')) {
+        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
             $validated['photo'] = $request->file('photo')->store('requests', 'public');
         }
 

@@ -25,6 +25,15 @@ class Request extends Model
         'technician_note',
     ];
 
+    protected $casts = [
+        'request_date' => 'date',
+        'handled_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+
     /**
      * Relasi ke kategori (Category)
      */
@@ -52,21 +61,15 @@ class Request extends Model
     /**
      * Atur tanggal otomatis jika dibuat dari luar dashboard
      */
-    protected static function booted(): void
+    protected static function boot()
     {
+        parent::boot();
+
         static::creating(function ($request) {
             if (empty($request->request_date)) {
                 $request->request_date = now()->toDateString();
             }
         });
-    }
-
-    /**
-     * Hapus foto saat permintaan dihapus
-     */
-    protected static function boot()
-    {
-        parent::boot();
 
         static::deleting(function ($request) {
             if ($request->photo && Storage::disk('public')->exists($request->photo)) {
@@ -75,9 +78,14 @@ class Request extends Model
         });
 
         static::updating(function ($request) {
-            if ($request->isDirty('photo')) {
+
+            if (
+                $request->isDirty('photo') &&
+                filled($request->getOriginal('photo'))
+            ) {
                 $oldPhoto = $request->getOriginal('photo');
-                if ($oldPhoto && Storage::disk('public')->exists($oldPhoto)) {
+
+                if (Storage::disk('public')->exists($oldPhoto)) {
                     Storage::disk('public')->delete($oldPhoto);
                 }
             }
