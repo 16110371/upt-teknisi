@@ -14,10 +14,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Filament\Actions;
+use UnitEnum;
 
 class RequestResource extends Resource
 {
     protected static ?string $model = Request::class;
+
+    protected static string | UnitEnum | null $navigationGroup = 'Data';
 
     protected static ?string $navigationLabel = 'Permintaan';
 
@@ -25,7 +28,7 @@ class RequestResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Permintaan';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
 
     public static function form(Schema $schema): Schema
