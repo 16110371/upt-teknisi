@@ -11,7 +11,7 @@
 
 <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-6">
 
-    <h1 class="text-3xl font-bold text-indigo-700 mb-6 text-center">
+    <h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">
         📋 Daftar Antrian Permintaan
     </h1>
 
@@ -24,7 +24,7 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full border rounded-lg overflow-hidden">
-            <thead class="bg-indigo-600 text-white">
+            <thead class="bg-blue-700 text-white">
                 <tr>
                     <th class="px-4 py-3 text-left">No</th>
                     <th class="px-4 py-3 text-left">Tanggal</th>
