@@ -10,7 +10,7 @@ class QueueController extends Controller
     {
         $requests = Request::with(['category', 'location'])
             ->whereIn('status', ['Pending', 'Proses'])
-            ->orderBy('request_date')
+            ->orderBy('request_date', 'desc')
             ->get();
 
         return view('public-queue', compact('requests'));
