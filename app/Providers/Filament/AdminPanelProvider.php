@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\LoginAdmin;
 use App\Filament\Widgets\RequestPerCategoryChart;
 use App\Filament\Widgets\RequestPerMonthByCategoryChart;
 use App\Filament\Widgets\RequestPerMonthChart;
@@ -34,9 +35,11 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('10s')
             ->brandName('Sistem UPT')
-            ->login()
+            ->brandLogo(asset('images/logo-garjo-smk.png'))
+            ->brandLogoHeight('40px')
+            ->login(LoginAdmin::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
