@@ -8,6 +8,7 @@ use App\Models\Location;
 use Illuminate\Http\Request as HttpRequest;
 use App\Models\User;
 use Filament\Notifications\Notification;
+use Filament\Actions\Action;
 
 
 
@@ -50,6 +51,12 @@ class PublicRequestController extends Controller
                 ->title('Permintaan Baru')
                 ->body('Permintaan dari ' . $requestModel->requester_name)
                 ->icon('heroicon-o-clipboard-document-list')
+                ->actions([
+                    Action::make('lihat')
+                        ->label('Buka')
+                        ->url(route('filament.admin.resources.requests.edit', $requestModel))
+                        ->markAsRead(),
+                ])
                 ->sendToDatabase($user);
         }
 
