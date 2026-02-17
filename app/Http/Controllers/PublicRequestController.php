@@ -6,6 +6,11 @@ use App\Models\Request;
 use App\Models\Category;
 use App\Models\Location;
 use Illuminate\Http\Request as HttpRequest;
+use App\Models\User;
+use Filament\Notifications\Notification;
+use Filament\Actions\Action;
+
+
 
 
 class PublicRequestController extends Controller
@@ -37,7 +42,24 @@ class PublicRequestController extends Controller
         $validated['status'] = 'Pending';
         $validated['request_date'] = $validated['request_date'] ?? now();
 
-        Request::create($validated);
+        $requestModel = Request::create($validated);
+
+        $users = User::all();
+
+        foreach ($users as $user) {
+            Notification::make()
+                ->title('Permintaan Baru')
+                ->body('Permintaan dari ' . $requestModel->requester_name)
+                ->icon('heroicon-o-clipboard-document-list')
+                ->actions([
+                    Action::make('lihat')
+                        ->label('Buka')
+                        ->url(route('filament.admin.resources.requests.edit', $requestModel))
+                        ->markAsRead(),
+                ])
+                ->sendToDatabase($user);
+        }
+
 
         return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
     }

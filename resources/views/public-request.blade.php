@@ -126,7 +126,14 @@
                         🚀 Kirim Permintaan
                     </button>
                 </div>
+
             </form>
+                <div class="mb-4 mt-6 text-center">
+    <a href="{{ route('public.queue') }}"
+        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition">
+        📋 Lihat Antrian Saat Ini
+    </a>
+</div>
         </div>
     </main>
 

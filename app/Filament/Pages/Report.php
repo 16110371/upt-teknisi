@@ -15,12 +15,16 @@ use Illuminate\Database\Eloquent\Builder;
 use BackedEnum;
 use Filament\Support\Icons\Heroicon;
 use Filament\Actions\Action;
+use UnitEnum;
 
 class Report extends Page implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
 
     protected string $view = 'filament.pages.report';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Data';
+
 
     protected static ?string $navigationLabel = 'Laporan';
 
