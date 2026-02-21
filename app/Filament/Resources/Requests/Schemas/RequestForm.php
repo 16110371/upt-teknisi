@@ -40,6 +40,10 @@ class RequestForm
                 DateTimePicker::make('completed_at'),
                 FileUpload::make('photo')
                     ->image()
+                    ->optimize('webp')
+                    ->resize(50)
+                    ->maxImageWidth(1200)
+                    ->maxImageHeight(1200)
                     ->disk('public')
                     ->directory('requests')
                     ->label('Foto Kerusakan'),
