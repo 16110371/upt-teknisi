@@ -22,6 +22,10 @@ class KardusMasukForm
 
             FileUpload::make('foto')
                 ->image()
+                ->optimize('webp')
+                ->resize(50)
+                ->maxImageWidth(1200)
+                ->maxImageHeight(1200)
                 ->disk('public')
                 ->directory('kardus')
                 ->label('Foto Kardus'),
