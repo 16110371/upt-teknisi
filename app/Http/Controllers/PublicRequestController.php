@@ -9,6 +9,7 @@ use Illuminate\Http\Request as HttpRequest;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
+use App\Services\ImageService;
 
 
 
@@ -32,11 +33,14 @@ class PublicRequestController extends Controller
             'category_id' => 'required|exists:categories,id',
             'location_id' => 'required|exists:locations,id',
             'description' => 'required|string',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:8192', // max 8MB
         ]);
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            $validated['photo'] = $request->file('photo')->store('requests', 'public');
+            $validated['photo'] = ImageService::compress(
+                $request->file('photo'),
+                'requests'
+            );
         }
 
         $validated['status'] = 'Pending';
