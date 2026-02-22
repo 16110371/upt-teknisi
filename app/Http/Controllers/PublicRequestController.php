@@ -33,8 +33,13 @@ class PublicRequestController extends Controller
             'category_id' => 'required|exists:categories,id',
             'location_id' => 'required|exists:locations,id',
             'description' => 'required|string',
+            'priority' => 'nullable|string|in:Rendah,Sedang,Tinggi',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:8192', // max 8MB
         ]);
+
+        if (!isset($validated['priority'])) {
+            $validated['priority'] = 'Rendah';
+        }
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
             $validated['photo'] = ImageService::compress(

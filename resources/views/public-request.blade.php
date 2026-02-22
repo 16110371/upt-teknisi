@@ -74,10 +74,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold mb-1 text-gray-700">Kontak (Opsional)</label>
-                    <input type="text" name="requester_contact"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700"
-                        placeholder="Nomor WA / Telepon">
+                    <label class="block text-sm font-semibold mb-1 text-gray-700">
+                        Tingkat Prioritas <span class="text-red-500">*</span>
+                    </label>
+
+                    <select name="priority" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 bg-white">
+                        <option value="">Pilih Prioritas</option>
+                        <option value="Rendah" selected>🟢 Rendah</option>
+                        <option value="Sedang">🔵 Sedang</option>
+                        <option value="Tinggi">🟡 Tinggi</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -128,12 +135,12 @@
                 </div>
 
             </form>
-                <div class="mb-4 mt-6 text-center">
-    <a href="{{ route('public.queue') }}"
-        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition">
-        📋 Lihat Antrian Saat Ini
-    </a>
-</div>
+            <div class="mb-4 mt-6 text-center">
+                <a href="{{ route('public.queue') }}"
+                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition">
+                    📋 Lihat Antrian Saat Ini
+                </a>
+            </div>
         </div>
     </main>
 

@@ -18,6 +18,7 @@ class Request extends Model
         'location_id',
         'description',
         'status',
+        'priority',
         'technician_id',
         'handled_at',
         'photo',
