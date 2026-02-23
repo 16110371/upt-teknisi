@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('10s')
             ->brandName('Sistem UPT')
-            ->brandLogo(asset('images/logo-garjo-smk.png'))
+            ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('40px')
             ->login(LoginAdmin::class)
             ->colors([
