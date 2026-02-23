@@ -42,10 +42,26 @@
                     </span>
                 </div>
             </div>
-            <div class="hidden lg:flex space-x-8 font-medium text-sm text-slate-600 uppercase tracking-wide">
-                <a href="{{ url('/') }}" class="hover:text-blue-600 transition">Dashboard</a>
-                <a href="{{ url('/permintaan') }}" class="hover:text-blue-600 transition">Form Permintaan</a>
-                <a href="{{ url('/antrian') }}" class="hover:text-blue-600 transition">Antrian</a>
+            <div class="hidden lg:flex space-x-8 font-medium text-sm uppercase tracking-wide">
+
+                <a href="{{ url('/') }}"
+                    class="transition
+       {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                    Dashboard
+                </a>
+
+                <a href="{{ url('/permintaan') }}"
+                    class="transition
+       {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                    Form Permintaan
+                </a>
+
+                <a href="{{ url('/antrian') }}"
+                    class="transition
+       {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                    Antrian
+                </a>
+
             </div>
             <a href="{{ url('/permintaan') }}"
                 class="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-lg">
