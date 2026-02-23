@@ -69,4 +69,17 @@ class PublicRequestController extends Controller
 
         return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
     }
+
+    public function queue()
+    {
+        $requests = Request::with(['category', 'location'])
+            ->whereIn('status', ['Pending', 'Proses'])
+            ->orderByRaw("
+            FIELD(priority, 'Tinggi', 'Sedang', 'Rendah')
+        ")
+            ->latest()
+            ->get();
+
+        return view('antrian', compact('requests'));
+    }
 }
