@@ -37,10 +37,6 @@ class PublicRequestController extends Controller
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:8192', // max 8MB
         ]);
 
-        if (!isset($validated['priority'])) {
-            $validated['priority'] = 'Rendah';
-        }
-
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
             $validated['photo'] = ImageService::compress(
                 $request->file('photo'),
@@ -48,6 +44,7 @@ class PublicRequestController extends Controller
             );
         }
 
+        $validated['priority'] = $validated['priority'] ?? 'Rendah';
         $validated['status'] = 'Pending';
         $validated['request_date'] = $validated['request_date'] ?? now();
 

@@ -17,6 +17,11 @@
                         </ul>
                     </div>
                 @endif
+                @if (session('success'))
+                    <div class="bg-green-100 border border-green-300 text-green-700 p-4 rounded-lg mb-6">
+                        {{ session('success') }}
+                    </div>
+                @endif
                 <form method="POST" action="{{ route('public-request.store') }}" enctype="multipart/form-data"
                     class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 lg:p-12 space-y-8">
                     @csrf
@@ -102,22 +107,22 @@
                             </label>
                             <div class="flex flex-wrap gap-4 mb-6">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="rendah"
-                                        {{ old('priority', 'rendah') == 'rendah' ? 'checked' : '' }}>
+                                    <input type="radio" name="priority" value="Rendah"
+                                        {{ old('priority', 'Rendah') == 'Rendah' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
                                         🟢 Rendah (bisa ditunda)
                                     </span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="sedang"
-                                        {{ old('priority', 'rendah') == 'sedang' ? 'checked' : '' }}>
+                                    <input type="radio" name="priority" value="Sedang"
+                                        {{ old('priority', 'Rendah') == 'Sedang' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
                                         🟡 Sedang (butuh perbaikan)
                                     </span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="tinggi"
-                                        {{ old('priority', 'rendah') == 'tinggi' ? 'checked' : '' }}>
+                                    <input type="radio" name="priority" value="Tinggi"
+                                        {{ old('priority', 'Rendah') == 'Tinggi' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
                                         🔴 Tinggi (urgent)
                                     </span>
