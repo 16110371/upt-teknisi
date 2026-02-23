@@ -25,13 +25,17 @@
     </style>
 
     @stack('styles')
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
-<body class="bg-pattern text-slate-800">
+<body class="min-h-screen flex flex-col">
 
     {{-- ===== NAVBAR (shared) ===== --}}
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+    <nav x-data="{ open: false }" class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+
+        <div class="container mx-auto px-6 py-4 relative flex items-center justify-between">
+
+            <!-- Logo (Left) -->
             <div class="flex items-center space-x-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo SMK Syubbanul Wathon"
                     class="h-12 w-12 object-contain rounded-lg" />
@@ -42,44 +46,100 @@
                     </span>
                 </div>
             </div>
-            <div class="hidden lg:flex space-x-8 font-medium text-sm uppercase tracking-wide">
+
+            <!-- Menu Tengah (Desktop Only) -->
+            <div
+                class="hidden lg:flex absolute left-1/2 -translate-x-1/2 space-x-8 font-medium text-sm uppercase tracking-wide">
 
                 <a href="{{ url('/') }}"
                     class="transition
-       {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
                     Dashboard
                 </a>
 
                 <a href="{{ url('/permintaan') }}"
                     class="transition
-       {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
                     Form Permintaan
                 </a>
 
                 <a href="{{ url('/antrian') }}"
                     class="transition
-       {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
+                {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
                     Antrian
                 </a>
 
             </div>
+
+            <!-- Right Side -->
+            <div class="flex items-center">
+
+                <!-- Desktop Button -->
+                <a href="{{ url('/permintaan') }}"
+                    class="hidden lg:inline-block bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-lg">
+                    Lapor
+                </a>
+
+                <!-- Hamburger (Mobile Only) -->
+                <button @click="open = !open" class="lg:hidden ml-4 text-slate-700 focus:outline-none">
+
+                    <!-- Icon -->
+                    <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+
+                    <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown -->
+        <div x-show="open" x-transition class="lg:hidden bg-white border-t border-slate-200 px-6 pb-6 space-y-4">
+
+            <a href="{{ url('/') }}"
+                class="block text-sm font-medium
+            {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                Dashboard
+            </a>
+
             <a href="{{ url('/permintaan') }}"
-                class="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-lg">
+                class="block text-sm font-medium
+            {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                Form Permintaan
+            </a>
+
+            <a href="{{ url('/antrian') }}"
+                class="block text-sm font-medium
+            {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                Antrian
+            </a>
+
+            <a href="{{ url('/permintaan') }}"
+                class="block text-center bg-slate-900 text-white py-3 rounded-lg font-semibold hover:bg-slate-800 transition shadow">
                 Lapor Kerusakan
             </a>
+
         </div>
+
     </nav>
 
-    @yield('content')
+    <main class="flex-1">
+        @yield('content')
+    </main>
 
     <footer class="bg-white border-t border-slate-200 py-12">
         <div
             class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-            <p>&copy; {{ date('Y') }} UPT - SMK Syubbanul Wathon. Hak Cipta Dilindungi.</p>
+            <p>&copy; {{ date('Y') }} UPT - SMK Syubbanul Wathon.</p>
             <div class="flex space-x-6 mt-4 md:mt-0">
-                <a href="#" class="hover:text-slate-900">Standar Layanan IT</a>
-                <a href="#" class="hover:text-slate-900">Inventaris Fasilitas</a>
-                <a href="#" class="hover:text-slate-900">Support Teknis</a>
+                <p>Hak Cipta Dilindungi.</p>
             </div>
         </div>
     </footer>
