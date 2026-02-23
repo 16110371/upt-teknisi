@@ -59,7 +59,7 @@
     <footer class="bg-white border-t border-slate-200 py-12">
         <div
             class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
-            <p>&copy; 2026 UPT - SMK Syubbanul Wathon. Hak Cipta Dilindungi.</p>
+            <p>&copy; {{ date('Y') }} UPT - SMK Syubbanul Wathon. Hak Cipta Dilindungi.</p>
             <div class="flex space-x-6 mt-4 md:mt-0">
                 <a href="#" class="hover:text-slate-900">Standar Layanan IT</a>
                 <a href="#" class="hover:text-slate-900">Inventaris Fasilitas</a>
