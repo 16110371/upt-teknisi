@@ -4,6 +4,19 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="manifest" href="/manifest.json">
+
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UPT SMK">
+
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+
+
     <title>@yield('title', 'UPT - SMK Syubbanul Wathon')</title>
 
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />

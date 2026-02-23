@@ -14,7 +14,7 @@
                     <span class="text-blue-600 italic">Berkinerja Maksimal</span>
                 </h1>
                 <p class="text-lg text-slate-600 mb-10 max-w-lg leading-relaxed">
-                    Portal manajemen infrastruktur IT SMK yang komprehensif.
+                    Portal manajemen infrastruktur IT SMK Syubbanul Wathon.
                 </p>
 
                 <div class="flex flex-wrap gap-4">
