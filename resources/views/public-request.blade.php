@@ -8,6 +8,15 @@
     <section class="py-12 pb-24">
         <div class="container mx-auto px-6">
             <div class="max-w-3xl mx-auto">
+                @if ($errors->any())
+                    <div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-6">
+                        <ul class="list-disc pl-5 text-sm">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <form method="POST" action="{{ route('public-request.store') }}" enctype="multipart/form-data"
                     class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 lg:p-12 space-y-8">
                     @csrf
@@ -93,22 +102,24 @@
                             </label>
                             <div class="flex flex-wrap gap-4 mb-6">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="rendah" class="w-4 h-4 text-blue-600"
-                                        checked />
+                                    <input type="radio" name="priority" value="rendah"
+                                        {{ old('priority', 'rendah') == 'rendah' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
                                         🟢 Rendah (bisa ditunda)
                                     </span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="sedang" class="w-4 h-4 text-blue-600" />
+                                    <input type="radio" name="priority" value="sedang"
+                                        {{ old('priority', 'rendah') == 'sedang' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
                                         🟡 Sedang (butuh perbaikan)
                                     </span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="priority" value="tinggi" class="w-4 h-4 text-blue-600" />
+                                    <input type="radio" name="priority" value="tinggi"
+                                        {{ old('priority', 'rendah') == 'tinggi' ? 'checked' : '' }}>
                                     <span class="ml-2 text-sm text-slate-600 font-medium">
-                                        🔴 Tinggi (mendesak/darurat)
+                                        🔴 Tinggi (urgent)
                                     </span>
                                 </label>
                             </div>
@@ -122,50 +133,54 @@
                                 placeholder="Jelaskan detail masalah dengan seksama:&#10;- Apa yang terjadi&#10;- Gejala yang muncul&#10;- Kapan pertama kali terjadi&#10;- Apakah sudah ada solusi yang dicoba"
                                 rows="6"
                                 class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition resize-none"
-                                required>{{ old('descriprion') }}</textarea>
+                                required>{{ old('description') }}</textarea>
                         </div>
                     </div>
 
                     <!-- Section 4: Lampiran -->
                     <div>
-                        <label class="block text-sm font-semibold text-slate-900 mb-2">
-                            Foto/Screenshot Masalah
-                            <span class="text-slate-500">(Opsional)</span>
-                        </label>
+                        <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
+                            <span
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">4</span>
+                            Lampiran & Keterangan Tambahan
+                        </h2>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-900 mb-2">
+                                Foto/Screenshot Masalah
+                                <span class="text-slate-500">(Opsional)</span>
+                            </label>
 
-                        <div id="drop-zone"
-                            class="relative border-2 border-dashed border-slate-300 rounded-lg
-               h-56 flex items-center justify-center
-               text-center hover:border-blue-600 hover:bg-blue-50
-               transition cursor-pointer overflow-hidden">
+                            <div id="drop-zone"
+                                class="relative border-2 border-dashed border-slate-300 rounded-lg h-56 flex items-center justify-center text-center hover:border-blue-600 hover:bg-blue-50 transition cursor-pointer overflow-hidden">
 
-                            <input name="photo" type="file" accept="image/*" class="hidden" id="file-input" />
+                                <input name="photo" type="file" accept="image/*" class="hidden" id="file-input" />
 
-                            <!-- Default Upload Content -->
-                            <div id="upload-content">
-                                <p class="text-sm text-slate-600 font-medium">
-                                    Klik untuk upload atau drag & drop file
-                                </p>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    JPG / PNG max 5MB
-                                </p>
-                            </div>
+                                <!-- Default Upload Content -->
+                                <div id="upload-content">
+                                    <p class="text-sm text-slate-600 font-medium">
+                                        Klik untuk upload atau drag & drop file
+                                    </p>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        JPG / PNG max 5MB
+                                    </p>
+                                </div>
 
-                            <!-- Image Preview -->
-                            <img id="image-preview" class="hidden w-full h-full object-contain bg-slate-100" />
+                                <!-- Image Preview -->
+                                <img id="image-preview" class="hidden w-full h-full object-contain bg-slate-100" />
 
-                            <!-- Delete Button -->
-                            <button type="button" id="remove-image"
-                                class="hidden absolute top-2 right-2
+                                <!-- Delete Button -->
+                                <button type="button" id="remove-image"
+                                    class="hidden absolute top-2 right-2
                        bg-white/80 backdrop-blur
                        hover:bg-red-500 hover:text-white
                        text-slate-700
                        w-8 h-8 rounded-full shadow
                        flex items-center justify-center
                        transition">
-                                ✕
-                            </button>
+                                    ✕
+                                </button>
 
+                            </div>
                         </div>
                     </div>
 
