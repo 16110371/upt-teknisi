@@ -9,4 +9,9 @@ use Filament\Actions;
 class CreateRequest extends CreateRecord
 {
     protected static string $resource = RequestResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
