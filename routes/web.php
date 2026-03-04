@@ -6,12 +6,15 @@ use App\Http\Controllers\QueueController;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
 
 
 Route::get('/permintaan', [PublicRequestController::class, 'create'])->name('public-request.create');
 Route::post('/permintaan', [PublicRequestController::class, 'store'])->name('public-request.store');
 
-Route::get('/antrian', [QueueController::class, 'index'])
+// Route::get('/antrian', [QueueController::class, 'index'])
+//     ->name('public.queue');
+
+Route::get('/antrian', [PublicRequestController::class, 'queue'])
     ->name('public.queue');

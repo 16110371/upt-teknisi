@@ -34,12 +34,21 @@ class RequestsTable
                     ->label('Lokasi')
                     ->numeric()
                     ->sortable(),
+
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'Pending' => 'warning',   // kuning
                         'Proses' => 'info',       // biru muda
                         'Selesai' => 'success',   // hijau
                         'Dibatalkan' => 'danger', // merah
+                        default => 'gray',        // warna netral
+                    })
+                    ->badge(),
+                TextColumn::make('priority')
+                    ->color(fn(string $state): string => match ($state) {
+                        'Rendah' => 'success',    // hijau
+                        'Sedang' => 'warning',    // kuning
+                        'Tinggi' => 'danger',     // merah
                         default => 'gray',        // warna netral
                     })
                     ->badge(),

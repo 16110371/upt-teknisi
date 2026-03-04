@@ -33,6 +33,7 @@ class PublicRequestController extends Controller
             'category_id' => 'required|exists:categories,id',
             'location_id' => 'required|exists:locations,id',
             'description' => 'required|string',
+            'priority' => 'nullable|string|in:Rendah,Sedang,Tinggi',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:8192', // max 8MB
         ]);
 
@@ -43,6 +44,7 @@ class PublicRequestController extends Controller
             );
         }
 
+        $validated['priority'] = $validated['priority'] ?? 'Rendah';
         $validated['status'] = 'Pending';
         $validated['request_date'] = $validated['request_date'] ?? now();
 
@@ -66,5 +68,18 @@ class PublicRequestController extends Controller
 
 
         return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
+    }
+
+    public function queue()
+    {
+        $requests = Request::with(['category', 'location'])
+            ->whereIn('status', ['Pending', 'Proses'])
+            ->orderByRaw("
+            FIELD(priority, 'Tinggi', 'Sedang', 'Rendah')
+        ")
+            ->latest()
+            ->get();
+
+        return view('antrian', compact('requests'));
     }
 }
