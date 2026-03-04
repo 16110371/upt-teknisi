@@ -1,0 +1,60 @@
+name: Deploy to Hostinger - upt.tjktsw.com
+
+on:
+  push:
+    branches:
+      - main # Auto-deploy setiap push ke branch main
+
+jobs:
+  deploy:
+    name: Deploy via SFTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql
+          coverage: none
+
+      - name: 📥 Install Composer dependencies
+        run: composer install --optimize-autoloader --no-dev --prefer-dist
+
+      - name: 🎨 Build assets (npm)
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🚀 Deploy to upt.tjktsw.com
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./
+          server-dir: /domains/tjktsmksw.com/public_html/upt/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/.env
+            **/.env.example
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+            **/database/database.sqlite
+            **/*.md
+            **/phpunit.xml
+
+      - name: ✅ Deployment complete
+        run: |
+          echo "🎉 Deploy to upt.tjktsw.com successful!"
+          echo "⚠️ Jangan lupa clear cache di hosting jika perlu"
