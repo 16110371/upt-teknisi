@@ -73,7 +73,7 @@
                 <a href="{{ url('/permintaan') }}"
                     class="transition
                 {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600' }}">
-                    Form Permintaan
+                    Form Perbaikan
                 </a>
 
                 <a href="{{ url('/antrian') }}"
