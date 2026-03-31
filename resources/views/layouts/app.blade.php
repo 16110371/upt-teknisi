@@ -125,7 +125,7 @@
             <a href="{{ url('/permintaan') }}"
                 class="block text-sm font-medium
             {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
-                Form Permintaan
+                Form Perbaikan
             </a>
 
             <a href="{{ url('/antrian') }}"
