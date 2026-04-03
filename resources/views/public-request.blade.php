@@ -4,27 +4,46 @@
 
 @section('content')
 
-    <!-- Main Form Section -->
-    <section class="py-12 pb-24">
-        <div class="container mx-auto px-6">
-            <div class="max-w-3xl mx-auto">
-                @if ($errors->any())
-                    <div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-6">
-                        <ul class="list-disc pl-5 text-sm">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-                @if (session('success'))
-                    <div class="bg-green-100 border border-green-300 text-green-700 p-4 rounded-lg mb-6">
-                        {{ session('success') }}
-                    </div>
-                @endif
-                <form method="POST" action="{{ route('public-request.store') }}" enctype="multipart/form-data"
-                    class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 lg:p-12 space-y-8">
+<!-- Main Form Section -->
+<section class="py-12 pb-24">
+    <div class="container mx-auto px-6">
+        <div class="max-w-3xl mx-auto">
+            @if ($errors->any())
+            <div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-6">
+                <ul class="list-disc pl-5 text-sm">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            <!-- @if (session('success'))
+            <div class="bg-green-100 border border-green-300 text-green-700 p-4 rounded-lg mb-6">
+                {{ session('success') }}
+            </div>
+            @endif -->
+            <div x-data="{ loading: false, success: {{ session()->has('success') ? 'true' : 'false' }} }" x-init="if(success){ setTimeout(() => { window.location.href = '/antrian'; }, 2000)}">
+                <form method="POST" action="{{ route('public-request.store') }}" enctype="multipart/form-data" @submit="loading = true" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 lg:p-12 space-y-8">
                     @csrf
+                    <div x-show="loading"
+                        x-cloak
+                        x-transition
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+
+                        <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-4">
+
+                            <!-- Spinner -->
+                            <svg class="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" />
+                            </svg>
+
+                            <!-- Text -->
+                            <p class="text-sm font-semibold text-slate-700">
+                                Mengirim ...
+                            </p>
+
+                        </div>
+                    </div>
                     <!-- Section 1: Data Pelapor -->
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
@@ -43,7 +62,7 @@
                                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                                     required>
                                 @error('requester_name')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -67,10 +86,10 @@
                                     required>
                                     <option value="">-- Pilih Lokasi --</option>
                                     @foreach ($locations as $loc)
-                                        <option value="{{ $loc->id }}"
-                                            {{ old('location_id') == $loc->id ? 'selected' : '' }}>
-                                            {{ $loc->name }}
-                                        </option>
+                                    <option value="{{ $loc->id }}"
+                                        {{ old('location_id') == $loc->id ? 'selected' : '' }}>
+                                        {{ $loc->name }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -83,10 +102,10 @@
                                     required>
                                     <option value="">-- Pilih Tipe --</option>
                                     @foreach ($categories as $cat)
-                                        <option value="{{ $cat->id }}"
-                                            {{ old('category_id') == $cat->id ? 'selected' : '' }}>
-                                            {{ $cat->name }}
-                                        </option>
+                                    <option value="{{ $cat->id }}"
+                                        {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -191,7 +210,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                        <button type="submit"
+                        <button :disabled="loading" type="submit"
                             class="flex-1 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -214,94 +233,118 @@
                         </p>
                     </div>
                 </form>
+                <div x-show="success"
+                    x-cloak
+                    x-transition.opacity.duration.300ms
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+
+                    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-4 text-center">
+
+                        <div class="w-16 h-16 flex items-center justify-center rounded-full bg-green-100">
+                            <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-width="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        <h2 class="text-lg font-bold text-slate-900">
+                            Berhasil!
+                        </h2>
+
+                        <p class="text-sm text-slate-600">
+                            Laporan Anda berhasil dikirim 🎉
+                        </p>
+
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
 @endsection
 
 @push('scripts')
-    <script>
-        const fileInput = document.getElementById('file-input');
-        const dropZone = document.getElementById('drop-zone');
-        const preview = document.getElementById('image-preview');
-        const uploadContent = document.getElementById('upload-content');
-        const removeBtn = document.getElementById('remove-image');
-        const resetBtn = document.getElementById('reset-btn');
+<script>
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+    const preview = document.getElementById('image-preview');
+    const uploadContent = document.getElementById('upload-content');
+    const removeBtn = document.getElementById('remove-image');
+    const resetBtn = document.getElementById('reset-btn');
 
-        // Klik dropzone → buka file
-        dropZone.addEventListener('click', (e) => {
-            if (e.target.id !== 'remove-image') {
-                fileInput.click();
-            }
-        });
+    // Klik dropzone → buka file
+    dropZone.addEventListener('click', (e) => {
+        if (e.target.id !== 'remove-image') {
+            fileInput.click();
+        }
+    });
 
-        // Preview gambar
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (!file) return;
+    // Preview gambar
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
 
-            if (!file.type.startsWith('image/')) {
-                alert('File harus berupa gambar!');
-                return;
-            }
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar!');
+            return;
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
-                uploadContent.classList.add('hidden');
-                removeBtn.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            uploadContent.classList.add('hidden');
+            removeBtn.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
 
-        // Remove image
-        removeBtn.addEventListener('click', function(e) {
-            e.stopPropagation(); // biar tidak buka file dialog
+    // Remove image
+    removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // biar tidak buka file dialog
 
-            preview.src = '';
-            preview.classList.add('hidden');
-            uploadContent.classList.remove('hidden');
-            removeBtn.classList.add('hidden');
-            fileInput.value = '';
-        });
+        preview.src = '';
+        preview.classList.add('hidden');
+        uploadContent.classList.remove('hidden');
+        removeBtn.classList.add('hidden');
+        fileInput.value = '';
+    });
 
-        // Reset form handler
-        resetBtn.addEventListener('click', function() {
-            // Reset preview foto
-            preview.src = '';
-            preview.classList.add('hidden');
-            uploadContent.classList.remove('hidden');
-            removeBtn.classList.add('hidden');
-            fileInput.value = '';
-        });
+    // Reset form handler
+    resetBtn.addEventListener('click', function() {
+        // Reset preview foto
+        preview.src = '';
+        preview.classList.add('hidden');
+        uploadContent.classList.remove('hidden');
+        removeBtn.classList.add('hidden');
+        fileInput.value = '';
+    });
 
-        // Drag & Drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('border-blue-600', 'bg-blue-50');
-        });
+    // Drag & Drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-600', 'bg-blue-50');
+    });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('border-blue-600', 'bg-blue-50');
-        });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-600', 'bg-blue-50');
+    });
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('border-blue-600', 'bg-blue-50');
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-600', 'bg-blue-50');
 
-            const file = e.dataTransfer.files[0];
-            fileInput.files = e.dataTransfer.files;
+        const file = e.dataTransfer.files[0];
+        fileInput.files = e.dataTransfer.files;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
-                uploadContent.classList.add('hidden');
-                removeBtn.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        });
-    </script>
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            uploadContent.classList.add('hidden');
+            removeBtn.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+</script>
 @endpush

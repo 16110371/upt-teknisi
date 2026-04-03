@@ -35,6 +35,10 @@
             background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
             background-size: 24px 24px;
         }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 
     @stack('styles')
