@@ -73,6 +73,10 @@ class AdminPanelProvider extends PanelProvider
                 'panels::head.end',
                 fn() => view('admin-pwa')
             )
+            ->renderHook(
+                'panels::body.end',
+                fn() => view('firebase-script')
+            )
             ->sidebarCollapsibleOnDesktop();
     }
 }
