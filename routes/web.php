@@ -19,6 +19,10 @@ Route::post('/permintaan', [PublicRequestController::class, 'store'])->name('pub
 Route::get('/antrian', [PublicRequestController::class, 'queue'])
     ->name('public.queue');
 
+Route::post('/save-token', function (Illuminate\Http\Request $request) {
+    dd(auth()->user());
+});
+
 Route::post('/save-token', function (\Illuminate\Http\Request $request) {
     auth()->user()->update([
         'fcm_token' => $request->token
