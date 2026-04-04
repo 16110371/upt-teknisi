@@ -27,7 +27,24 @@
             getToken(messaging, {
                 vapidKey: "BCg_qkYPP3A0Ju6tnZZI5YrYthuLSEGSCJplM4f9vC8IkFEhfCTRNq1GgbL5QQzIduU6leBeZ0H67orisY1NUyI"
             }).then((token) => {
+
                 console.log("TOKEN:", token);
+
+                // 🔥 INI YANG KAMU TANYAKAN
+                fetch('/save-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            token: token
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => console.log("Token saved:", data))
+                    .catch(err => console.error("Error:", err));
+
             });
         }
     });
