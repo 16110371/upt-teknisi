@@ -162,6 +162,60 @@
     </footer>
 
     @stack('scripts')
+    <script type="module">
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getMessaging,
+            getToken,
+            onMessage
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaVcOL_tbf8A5We8n5lzbnAwAF1eVA4Vg",
+            authDomain: "upt-smksw.firebaseapp.com",
+            projectId: "upt-smksw",
+            storageBucket: "upt-smksw.firebasestorage.app",
+            messagingSenderId: "860712318540",
+            appId: "1:860712318540:web:099cb74eed0a34191326e9",
+            measurementId: "G-E84WX1E4Q5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // Request permission
+        Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+                getToken(messaging, {
+                    vapidKey: "BCg_qkYPP3A0Ju6tnZZI5YrYthuLSEGSCJplM4f9vC8IkFEhfCTRNq1GgbL5QQzIduU6leBeZ0H67orisY1NUyI"
+                }).then((currentToken) => {
+                    if (currentToken) {
+                        console.log("TOKEN:", currentToken);
+
+                        // kirim ke backend Laravel
+                        fetch('/save-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                token: currentToken
+                            })
+                        });
+                    }
+                });
+            }
+        });
+
+        // Notif saat app dibuka
+        onMessage(messaging, (payload) => {
+            console.log("Message received:", payload);
+            alert(payload.notification.title);
+        });
+    </script>
 </body>
 
 </html>
