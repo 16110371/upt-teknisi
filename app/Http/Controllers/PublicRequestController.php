@@ -62,7 +62,7 @@ class PublicRequestController extends Controller
                 $token,
                 'Permintaan Baru',
                 'Permintaan dari ' . $requestModel->requester_name,
-                url('/admin/requests/' . $requestModel->id . '/edit')
+                url('/admin/requests')
             );
         }
         // $users = User::all();

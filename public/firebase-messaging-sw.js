@@ -23,23 +23,13 @@ messaging.onBackgroundMessage(function(payload) {
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
-    const url = event.notification.data?.url || '/admin';
+    let url = '/admin/requests';
+
+    if (event.notification.data && event.notification.data.url) {
+        url = event.notification.data.url;
+    }
 
     event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true })
-            .then(function (clientList) {
-
-                // kalau tab sudah ada → fokus
-                for (const client of clientList) {
-                    if (client.url.includes('/admin') && 'focus' in client) {
-                        return client.focus();
-                    }
-                }
-
-                // kalau belum ada → buka baru
-                if (clients.openWindow) {
-                    return clients.openWindow(url);
-                }
-            })
+        clients.openWindow(url)
     );
 });
