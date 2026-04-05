@@ -28,17 +28,19 @@ class PublicRequestController extends Controller
 
     public function store(HttpRequest $request)
     {
-        $firebase = app(FirebaseService::class);
+        $firebase = app(\App\Services\FirebaseService::class);
 
-        $token = FcmToken::first()->token;
+        $tokens = FcmToken::pluck('token');
 
-        $response = $firebase->send(
-            $token,
-            'Test Notif',
-            'Ini percobaan notif'
-        );
+        foreach ($tokens as $token) {
+            $firebase->send(
+                $token,
+                'Permintaan Baru',
+                'Ini notifikasi pertama dari sistem 🚀'
+            );
+        }
 
-        dd($response->json());
+        dd('Notif dikirim');
 
         $validated = $request->validate([
             'request_date' => 'nullable|date',
