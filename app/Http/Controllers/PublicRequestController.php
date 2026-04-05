@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Request;
 use App\Models\Category;
+use App\Models\FcmToken;
 use App\Models\Location;
 use Illuminate\Http\Request as HttpRequest;
 use App\Models\User;
+use App\Services\FirebaseService;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 use App\Services\ImageService;
@@ -26,6 +28,10 @@ class PublicRequestController extends Controller
 
     public function store(HttpRequest $request)
     {
+        $firebase = app(FirebaseService::class);
+
+        dd($firebase->getAccessToken());
+
         $validated = $request->validate([
             'request_date' => 'nullable|date',
             'requester_name' => 'required|string|max:100',
@@ -50,24 +56,35 @@ class PublicRequestController extends Controller
 
         $requestModel = Request::create($validated);
 
-        $users = User::all();
+        // $users = User::all();
 
-        foreach ($users as $user) {
-            Notification::make()
-                ->title('Permintaan Baru')
-                ->body('Permintaan dari ' . $requestModel->requester_name)
-                ->icon('heroicon-o-clipboard-document-list')
-                ->actions([
-                    Action::make('lihat')
-                        ->label('Buka')
-                        ->url(route('filament.admin.resources.requests.edit', $requestModel))
-                        ->markAsRead(),
-                ])
-                ->sendToDatabase($user);
+        // foreach ($users as $user) {
+        //     Notification::make()
+        //         ->title('Permintaan Baru')
+        //         ->body('Permintaan dari ' . $requestModel->requester_name)
+        //         ->icon('heroicon-o-clipboard-document-list')
+        //         ->actions([
+        //             Action::make('lihat')
+        //                 ->label('Buka')
+        //                 ->url(route('filament.admin.resources.requests.edit', $requestModel))
+        //                 ->markAsRead(),
+        //         ])
+        //         ->sendToDatabase($user);
+        // }
+
+
+        // return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
+        $tokens = FcmToken::pluck('token');
+
+        foreach ($tokens as $token) {
+            sendFcm(
+                $token,
+                'Permintaan Baru',
+                'Permintaan dari ' . $requestModel->requester_name
+            );
         }
 
-
-        return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
+        return redirect()->back()->with('success', true);
     }
 
     public function queue()
