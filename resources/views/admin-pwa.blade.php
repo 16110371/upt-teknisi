@@ -5,36 +5,20 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="UPT Admin">
 
+<button id="btn-notif" class="bg-blue-600 text-white px-4 py-2 rounded">Aktifkan Notifikasi</button>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('btn-notif').addEventListener('click', function() {
 
-        // pastikan ini jalan di PWA (iOS)
-        if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            console.log('Permission:', permission);
 
-            console.log('Permission awal:', Notification.permission);
-
-            if (Notification.permission === 'default') {
-
-                // iOS BUTUH interaksi user → pakai klik
-                document.body.addEventListener('click', function requestNotifOnce() {
-
-                    Notification.requestPermission().then(permission => {
-                        console.log('Permission:', permission);
-
-                        if (permission === 'granted') {
-                            alert('Notifikasi berhasil diaktifkan 🎉');
-                        } else {
-                            alert('Notifikasi ditolak');
-                        }
-                    });
-
-                    // supaya hanya sekali
-                    document.body.removeEventListener('click', requestNotifOnce);
-                });
-
+            if (permission === 'granted') {
+                alert('Notifikasi aktif 🎉');
+            } else {
+                alert('Notifikasi ditolak ❌');
             }
-
-        }
+        });
 
     });
 </script>
