@@ -11,31 +11,67 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// ✅ Untuk Android & desktop browser
 messaging.onBackgroundMessage(function (payload) {
-    console.log('Payload:', payload);
+    console.log('[SW] onBackgroundMessage:', payload);
 
-    const title = payload.data.title;
+    // Cegah duplikat notifikasi (karena push event juga handle)
+    // onBackgroundMessage hanya jalan di non-iOS
+    const title   = payload.notification?.title || payload.data?.title || 'Notifikasi';
     const options = {
-        body: payload.data.body,
-        icon: '/logo.png',
-        data: {
-            url: payload.data.url
-        }
+        body  : payload.notification?.body || payload.data?.body || '',
+        icon  : '/logo.png',
+        badge : '/logo.png',
+        data  : { url: payload.data?.url || '/admin/requests' }
     };
 
     self.registration.showNotification(title, options);
 });
 
-self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
+// ✅ Native push event - fallback untuk iOS PWA
+self.addEventListener('push', function (event) {
+    console.log('[SW] Native push event:', event);
 
-    let url = '/admin/requests';
+    let title   = 'Notifikasi Baru';
+    let options = {
+        body  : '',
+        icon  : '/logo.png',
+        badge : '/logo.png',
+        data  : { url: '/admin/requests' }
+    };
 
-    if (event.notification.data && event.notification.data.url) {
-        url = event.notification.data.url;
+    if (event.data) {
+        try {
+            const payload = event.data.json();
+            title         = payload.notification?.title || payload.data?.title || title;
+            options.body  = payload.notification?.body  || payload.data?.body  || '';
+            options.data.url = payload.data?.url || '/admin/requests';
+        } catch (e) {
+            console.error('[SW] Push parse error:', e);
+        }
     }
 
     event.waitUntil(
-        clients.openWindow(url)
+        self.registration.showNotification(title, options)
+    );
+});
+
+// ✅ Handle klik notifikasi
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    const url = event.notification.data?.url || '/admin/requests';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(function (clientList) {
+                for (const client of clientList) {
+                    if (client.url.includes('/admin') && 'focus' in client) {
+                        client.focus();
+                        return client.navigate(url);
+                    }
+                }
+                return clients.openWindow(url);
+            })
     );
 });

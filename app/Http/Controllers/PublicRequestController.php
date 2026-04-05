@@ -12,6 +12,7 @@ use App\Services\FirebaseService;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 use App\Services\ImageService;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -58,13 +59,29 @@ class PublicRequestController extends Controller
         $firebase = app(\App\Services\FirebaseService::class);
 
         foreach ($tokens as $token) {
-            $firebase->send(
-                $token,
-                'Permintaan Baru',
-                'Permintaan dari ' . $requestModel->requester_name,
-                url('/admin/requests')
-            );
+            try {
+                $response = $firebase->send(
+                    $token,
+                    'Permintaan Baru',
+                    'Permintaan dari ' . $requestModel->requester_name,
+                    url('/admin/requests')
+                );
+
+                // ✅ Hapus token tidak valid otomatis
+                if (in_array($response->status(), [400, 404])) {
+                    $errorCode = $response->json()['error']['details'][0]['errorCode'] ?? '';
+                    if (in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'])) {
+                        FcmToken::where('token', $token)->delete();
+                        Log::info('Token dihapus: ' . $token);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('FCM error: ' . $e->getMessage());
+                continue;
+            }
         }
+
+        return redirect()->back()->with('success', true);
         // $users = User::all();
 
         // foreach ($users as $user) {
@@ -84,7 +101,6 @@ class PublicRequestController extends Controller
 
         // return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
 
-        return redirect()->back()->with('success', true);
     }
 
     public function queue()

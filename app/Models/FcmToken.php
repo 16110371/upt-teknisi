@@ -9,5 +9,11 @@ class FcmToken extends Model
     protected $fillable = [
         'user_id',
         'token',
+        'platform', // ✅ tambah ini
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }
