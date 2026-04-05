@@ -61,7 +61,8 @@ class PublicRequestController extends Controller
             $firebase->send(
                 $token,
                 'Permintaan Baru',
-                'Permintaan dari ' . $requestModel->requester_name
+                'Permintaan dari ' . $requestModel->requester_name,
+                url('/admin/requests/' . $requestModel->id . '/edit')
             );
         }
         // $users = User::all();
@@ -82,15 +83,6 @@ class PublicRequestController extends Controller
 
 
         // return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
-        // $tokens = FcmToken::pluck('token');
-
-        // foreach ($tokens as $token) {
-        //     sendFcm(
-        //         $token,
-        //         'Permintaan Baru',
-        //         'Permintaan dari ' . $requestModel->requester_name
-        //     );
-        // }
 
         return redirect()->back()->with('success', true);
     }

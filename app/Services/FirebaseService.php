@@ -21,7 +21,7 @@ class FirebaseService
         return $token['access_token'];
     }
 
-    public function send($token, $title, $body)
+    public function send($token, $title, $body, $url = null)
     {
         $accessToken = $this->getAccessToken();
 
@@ -35,7 +35,7 @@ class FirebaseService
                         "body" => $body,
                     ],
                     "data" => [
-                        "url" => url('/admin/requests/' . $requestModel->id . '/edit')
+                        "url" => $url ?? '/admin'
                     ]
                 ]
             ]
