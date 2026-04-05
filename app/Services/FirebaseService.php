@@ -34,6 +34,9 @@ class FirebaseService
                         "title" => $title,
                         "body" => $body,
                     ],
+                    "data" => [
+                        "url" => url('/admin/requests/' . $requestModel->id . '/edit')
+                    ]
                 ]
             ]
         );

@@ -19,3 +19,13 @@ messaging.onBackgroundMessage(function(payload) {
         icon: '/logo.png'
     });
 });
+
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    const url = event.notification.data?.url || '/admin';
+
+    event.waitUntil(
+        clients.openWindow(url)
+    );
+});

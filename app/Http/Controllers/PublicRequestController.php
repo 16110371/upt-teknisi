@@ -28,19 +28,6 @@ class PublicRequestController extends Controller
 
     public function store(HttpRequest $request)
     {
-        $firebase = app(\App\Services\FirebaseService::class);
-
-        $tokens = FcmToken::pluck('token');
-
-        foreach ($tokens as $token) {
-            $firebase->send(
-                $token,
-                'Permintaan Baru',
-                'Ini notifikasi pertama dari sistem 🚀'
-            );
-        }
-
-        dd('Notif dikirim');
 
         $validated = $request->validate([
             'request_date' => 'nullable|date',
@@ -66,6 +53,17 @@ class PublicRequestController extends Controller
 
         $requestModel = Request::create($validated);
 
+        $tokens = FcmToken::pluck('token');
+
+        $firebase = app(\App\Services\FirebaseService::class);
+
+        foreach ($tokens as $token) {
+            $firebase->send(
+                $token,
+                'Permintaan Baru',
+                'Permintaan dari ' . $requestModel->requester_name
+            );
+        }
         // $users = User::all();
 
         // foreach ($users as $user) {
