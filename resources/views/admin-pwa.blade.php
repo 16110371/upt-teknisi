@@ -26,7 +26,7 @@
     });
 
     const messaging = firebase.messaging();
-    const VAPID_KEY = 'YOUR_VAPID_KEY_HERE'; // ← ganti dengan VAPID key dari Firebase Console
+    const VAPID_KEY = 'BCg_qkYPP3A0Ju6tnZZI5YrYthuLSEGSCJplM4f9vC8IkFEhfCTRNq1GgbL5QQzIduU6leBeZ0H67orisY1NUyI'; // ← ganti dengan VAPID key dari Firebase Console
 
     // Deteksi platform
     function getPlatform() {
