@@ -26,6 +26,20 @@ self.addEventListener('notificationclick', function (event) {
     const url = event.notification.data?.url || '/admin';
 
     event.waitUntil(
-        clients.openWindow(url)
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(function (clientList) {
+
+                // kalau tab sudah ada → fokus
+                for (const client of clientList) {
+                    if (client.url.includes('/admin') && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+
+                // kalau belum ada → buka baru
+                if (clients.openWindow) {
+                    return clients.openWindow(url);
+                }
+            })
     );
 });
