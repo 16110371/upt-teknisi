@@ -30,7 +30,15 @@ class PublicRequestController extends Controller
     {
         $firebase = app(FirebaseService::class);
 
-        dd($firebase->getAccessToken());
+        $token = FcmToken::first()->token;
+
+        $response = $firebase->send(
+            $token,
+            'Test Notif',
+            'Ini percobaan notif'
+        );
+
+        dd($response->json());
 
         $validated = $request->validate([
             'request_date' => 'nullable|date',
@@ -74,15 +82,15 @@ class PublicRequestController extends Controller
 
 
         // return redirect()->route('public-request.create')->with('success', 'Permintaan berhasil dikirim!');
-        $tokens = FcmToken::pluck('token');
+        // $tokens = FcmToken::pluck('token');
 
-        foreach ($tokens as $token) {
-            sendFcm(
-                $token,
-                'Permintaan Baru',
-                'Permintaan dari ' . $requestModel->requester_name
-            );
-        }
+        // foreach ($tokens as $token) {
+        //     sendFcm(
+        //         $token,
+        //         'Permintaan Baru',
+        //         'Permintaan dari ' . $requestModel->requester_name
+        //     );
+        // }
 
         return redirect()->back()->with('success', true);
     }
