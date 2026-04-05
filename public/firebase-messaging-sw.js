@@ -11,13 +11,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(function(payload) {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
+messaging.onBackgroundMessage(function (payload) {
+    console.log('Payload:', payload);
 
-    self.registration.showNotification(payload.notification.title, {
-        body: payload.notification.body,
-        icon: '/logo.png'
-    });
+    const title = payload.data.title;
+    const options = {
+        body: payload.data.body,
+        icon: '/logo.png',
+        data: {
+            url: payload.data.url
+        }
+    };
+
+    self.registration.showNotification(title, options);
 });
 
 self.addEventListener('notificationclick', function (event) {

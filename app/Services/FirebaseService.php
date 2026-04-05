@@ -30,12 +30,10 @@ class FirebaseService
             [
                 "message" => [
                     "token" => $token,
-                    "notification" => [
+                    "data" => [
                         "title" => $title,
                         "body" => $body,
-                    ],
-                    "data" => [
-                        "url" => $url ?? '/admin'
+                        "url" => $url
                     ]
                 ]
             ]
