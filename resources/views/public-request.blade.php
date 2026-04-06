@@ -247,11 +247,11 @@
                         </div>
 
                         <h2 class="text-lg font-bold text-slate-900">
-                            Berhasil!
+                            Berhasil Terkirim!
                         </h2>
 
                         <p class="text-sm text-slate-600">
-                            Laporan Anda berhasil dikirim 🎉
+                            Terima kasih, laporan Anda akan segera kami proses. 🎉
                         </p>
 
                     </div>
