@@ -25,12 +25,22 @@ messaging.onBackgroundMessage(function (payload) {
         data  : { url: payload.data?.url || '/admin/requests' }
     };
 
+    // ✅ Tambahkan badge di icon homescreen
+    if (navigator.setAppBadge) {
+        navigator.setAppBadge(1);
+    }
+
     self.registration.showNotification(title, options);
 });
 
 // ✅ Handle klik notifikasi
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
+
+    // ✅ Hapus badge saat notifikasi diklik
+    if (navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+    }
 
     const url = event.notification.data?.url || '/admin/requests';
 
