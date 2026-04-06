@@ -33,11 +33,8 @@ class FirebaseService
         $message = ["token" => $token];
 
         if ($platform === 'ios') {
-            // ✅ iOS butuh notification block
-            $message["notification"] = [
-                "title" => $title,
-                "body"  => $body,
-            ];
+            // ✅ Hapus notification block dari root
+            // Gunakan hanya apns block saja
             $message["data"] = [
                 "title" => $title,
                 "body"  => $body,
@@ -52,7 +49,11 @@ class FirebaseService
                         ],
                         "sound" => "default",
                         "badge" => 1,
+                        "mutable-content" => 1,
                     ]
+                ],
+                "headers" => [
+                    "apns-priority" => "10"
                 ]
             ];
         } else {
