@@ -11,51 +11,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Flag untuk cegah duplikat
-let isHandled = false;
-
-// ✅ Native push event - handle DULUAN sebelum Firebase SDK
-self.addEventListener('push', function (event) {
-    console.log('[SW] Native push event:', event);
-    isHandled = true; // tandai sudah dihandle
-
-    let title   = 'Notifikasi Baru';
-    let options = {
-        body  : '',
-        icon  : '/logo.png',
-        badge : '/logo.png',
-        data  : { url: '/admin/requests' }
-    };
-
-    if (event.data) {
-        try {
-            const payload = event.data.json();
-            title            = payload.notification?.title || payload.data?.title || title;
-            options.body     = payload.notification?.body  || payload.data?.body  || '';
-            options.data.url = payload.data?.url || '/admin/requests';
-        } catch (e) {
-            console.error('[SW] Push parse error:', e);
-        }
-    }
-
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-    );
-});
-
-// ✅ onBackgroundMessage hanya jalan kalau push event belum handle
+// ✅ Hanya pakai onBackgroundMessage saja
+// Karena payload hanya data block, FCM tidak auto-display
+// Service worker yang full control
 messaging.onBackgroundMessage(function (payload) {
     console.log('[SW] onBackgroundMessage:', payload);
 
-    if (isHandled) {
-        console.log('[SW] Sudah dihandle oleh push event, skip.');
-        isHandled = false; // reset flag
-        return;
-    }
-
-    const title   = payload.notification?.title || payload.data?.title || 'Notifikasi';
+    const title   = payload.data?.title || 'Notifikasi Baru';
     const options = {
-        body  : payload.notification?.body || payload.data?.body || '',
+        body  : payload.data?.body  || '',
         icon  : '/logo.png',
         badge : '/logo.png',
         data  : { url: payload.data?.url || '/admin/requests' }

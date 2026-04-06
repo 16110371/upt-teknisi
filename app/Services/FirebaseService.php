@@ -25,44 +25,52 @@ class FirebaseService
         $accessToken = $this->getAccessToken();
         $url = $url ?? '/admin/requests';
 
-        return Http::withToken($accessToken)->post(
-            "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send",
-            [
-                "message" => [
-                    "token" => $token,
+        // Cek platform token dari database
+        $fcmToken = \App\Models\FcmToken::where('token', $token)->first();
+        $platform = $fcmToken?->platform ?? 'web';
 
-                    // ✅ data block - untuk service worker ambil URL
-                    "data" => [
-                        "title" => $title,
-                        "body"  => $body,
-                        "url"   => $url,
-                    ],
+        // Bangun payload berdasarkan platform
+        $message = ["token" => $token];
 
-                    // ✅ webpush block - khusus PWA (iOS & Android browser)
-                    "webpush" => [
-                        "notification" => [
+        if ($platform === 'ios') {
+            // ✅ iOS butuh notification block
+            $message["notification"] = [
+                "title" => $title,
+                "body"  => $body,
+            ];
+            $message["data"] = [
+                "title" => $title,
+                "body"  => $body,
+                "url"   => $url,
+            ];
+            $message["apns"] = [
+                "payload" => [
+                    "aps" => [
+                        "alert" => [
                             "title" => $title,
                             "body"  => $body,
-                            "icon"  => "/logo.png",
-                            "badge" => "/logo.png",
-                            "data"  => ["url" => $url]
                         ],
-                        "fcm_options" => [
-                            "link" => $url
-                        ]
-                    ],
-
-                    // ✅ android block - pastikan Android tetap normal
-                    "android" => [
-                        "notification" => [
-                            "title"        => $title,
-                            "body"         => $body,
-                            "icon"         => "ic_notification",
-                            "click_action" => "FLUTTER_NOTIFICATION_CLICK"
-                        ]
+                        "sound" => "default",
+                        "badge" => 1,
                     ]
                 ]
-            ]
+            ];
+        } else {
+            // ✅ Android & web - hanya data block
+            // Service worker yang handle tampilan notifikasi
+            $message["data"] = [
+                "title" => $title,
+                "body"  => $body,
+                "url"   => $url,
+            ];
+            $message["android"] = [
+                "priority" => "high",
+            ];
+        }
+
+        return Http::withToken($accessToken)->post(
+            "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send",
+            ["message" => $message]
         );
     }
 }
