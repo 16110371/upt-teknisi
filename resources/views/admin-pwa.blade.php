@@ -7,8 +7,8 @@
 <link rel="manifest" href="/admin-manifest.json">
 <link rel="apple-touch-icon" href="/images/icon-192-admin.png">
 
-{{-- Tombol --}}
-<button id="btn-notif" class="bg-blue-600 text-white px-4 py-2 rounded">
+{{-- Tombol hanya untuk iOS --}}
+<button id="btn-notif" style="display:none;" class="bg-blue-600 text-white px-4 py-2 rounded">
     Aktifkan Notifikasi
 </button>
 
@@ -26,9 +26,9 @@
     });
 
     const messaging = firebase.messaging();
-    const VAPID_KEY = 'BCg_qkYPP3A0Ju6tnZZI5YrYthuLSEGSCJplM4f9vC8IkFEhfCTRNq1GgbL5QQzIduU6leBeZ0H67orisY1NUyI'; // ← ganti dengan VAPID key dari Firebase Console
+    const VAPID_KEY = 'YOUR_VAPID_KEY_HERE'; // ← pastikan sudah diganti
 
-    // Deteksi platform
+    // ✅ Deteksi platform
     function getPlatform() {
         const ua = navigator.userAgent;
         if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
@@ -36,7 +36,7 @@
         return 'web';
     }
 
-    // Register service worker
+    // ✅ Register service worker
     async function registerSW() {
         if (!('serviceWorker' in navigator)) return null;
         try {
@@ -52,7 +52,7 @@
         }
     }
 
-    // Simpan token ke server
+    // ✅ Simpan token ke server
     async function saveTokenToServer(token) {
         const response = await fetch('/save-token', {
             method: 'POST',
@@ -62,53 +62,29 @@
             },
             body: JSON.stringify({
                 token: token,
-                platform: getPlatform() // ✅ kirim platform
+                platform: getPlatform()
             })
         });
+
+        if (response.status === 401) {
+            console.log('Belum login, skip simpan token');
+            return;
+        }
 
         if (!response.ok) throw new Error('Gagal simpan token');
         return response.json();
     }
 
-    // Update tampilan tombol
-    function updateButton(status) {
-        const btn = document.getElementById('btn-notif');
-        const states = {
-            granted: {
-                text: '✅ Notifikasi Aktif',
-                cls: 'bg-green-600'
-            },
-            denied: {
-                text: '❌ Notifikasi Diblokir',
-                cls: 'bg-red-600'
-            },
-            default: {
-                text: 'Aktifkan Notifikasi',
-                cls: 'bg-blue-600'
-            },
-        };
-        const s = states[status] || states.default;
-        btn.textContent = s.text;
-        btn.className = btn.className.replace(/bg-\w+-600/, s.cls);
-    }
-
-    // Fungsi utama
+    // ✅ Fungsi utama request permission + ambil token
     async function requestNotificationPermission() {
         try {
             const swReg = await registerSW();
-            if (!swReg) {
-                alert('Browser tidak support notifikasi ❌');
-                return;
-            }
+            if (!swReg) return;
 
             const permission = await Notification.requestPermission();
             console.log('Permission:', permission);
 
-            if (permission !== 'granted') {
-                updateButton('denied');
-                alert('Notifikasi ditolak ❌');
-                return;
-            }
+            if (permission !== 'granted') return;
 
             const token = await messaging.getToken({
                 vapidKey: VAPID_KEY,
@@ -116,27 +92,71 @@
             });
 
             console.log('FCM Token:', token);
-
-            if (!token) {
-                alert('Gagal mendapatkan token ❌');
-                return;
-            }
+            if (!token) return;
 
             await saveTokenToServer(token);
-            updateButton('granted');
-            alert('Notifikasi aktif 🎉');
 
         } catch (err) {
             console.error('Error:', err);
-            alert('Terjadi error: ' + err.message);
         }
     }
 
-    // Init saat halaman load
+    // ✅ Init saat halaman load
     document.addEventListener('DOMContentLoaded', async function() {
-        await registerSW();
-        updateButton(Notification.permission);
+        const swReg = await registerSW();
+        const btn = document.getElementById('btn-notif');
+        const platform = getPlatform();
+
+        if (platform === 'ios') {
+            // iOS - wajib ada interaksi user
+            if (Notification.permission === 'granted') {
+                // Sudah pernah aktif - auto refresh token, sembunyikan tombol
+                btn.style.display = 'none';
+                try {
+                    const token = await messaging.getToken({
+                        vapidKey: VAPID_KEY,
+                        serviceWorkerRegistration: swReg
+                    });
+                    if (token) await saveTokenToServer(token);
+                } catch (err) {
+                    console.error('iOS auto token error:', err);
+                }
+            } else if (Notification.permission === 'denied') {
+                // Ditolak - sembunyikan tombol
+                btn.style.display = 'none';
+            } else {
+                // Belum pernah aktif - tampilkan tombol
+                btn.style.display = 'block';
+            }
+
+        } else if (platform === 'android') {
+            // Android - auto request, sembunyikan tombol
+            btn.style.display = 'none';
+            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                await requestNotificationPermission();
+            } else if (Notification.permission === 'granted') {
+                // Sudah granted - auto refresh token
+                try {
+                    const token = await messaging.getToken({
+                        vapidKey: VAPID_KEY,
+                        serviceWorkerRegistration: swReg
+                    });
+                    if (token) await saveTokenToServer(token);
+                } catch (err) {
+                    console.error('Android auto token error:', err);
+                }
+            }
+
+        } else {
+            // PC/Desktop - sembunyikan tombol sama sekali
+            btn.style.display = 'none';
+        }
     });
 
-    document.getElementById('btn-notif').addEventListener('click', requestNotificationPermission);
+    // ✅ Klik tombol - khusus iOS
+    document.getElementById('btn-notif').addEventListener('click', async function() {
+        await requestNotificationPermission();
+        // Sembunyikan tombol setelah klik
+        this.style.display = 'none';
+    });
 </script>
