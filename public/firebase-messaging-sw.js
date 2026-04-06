@@ -11,26 +11,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Untuk Android & desktop browser
-messaging.onBackgroundMessage(function (payload) {
-    console.log('[SW] onBackgroundMessage:', payload);
+// ✅ Flag untuk cegah duplikat
+let isHandled = false;
 
-    // Cegah duplikat notifikasi (karena push event juga handle)
-    // onBackgroundMessage hanya jalan di non-iOS
-    const title   = payload.notification?.title || payload.data?.title || 'Notifikasi';
-    const options = {
-        body  : payload.notification?.body || payload.data?.body || '',
-        icon  : '/logo.png',
-        badge : '/logo.png',
-        data  : { url: payload.data?.url || '/admin/requests' }
-    };
-
-    self.registration.showNotification(title, options);
-});
-
-// ✅ Native push event - fallback untuk iOS PWA
+// ✅ Native push event - handle DULUAN sebelum Firebase SDK
 self.addEventListener('push', function (event) {
     console.log('[SW] Native push event:', event);
+    isHandled = true; // tandai sudah dihandle
 
     let title   = 'Notifikasi Baru';
     let options = {
@@ -43,8 +30,8 @@ self.addEventListener('push', function (event) {
     if (event.data) {
         try {
             const payload = event.data.json();
-            title         = payload.notification?.title || payload.data?.title || title;
-            options.body  = payload.notification?.body  || payload.data?.body  || '';
+            title            = payload.notification?.title || payload.data?.title || title;
+            options.body     = payload.notification?.body  || payload.data?.body  || '';
             options.data.url = payload.data?.url || '/admin/requests';
         } catch (e) {
             console.error('[SW] Push parse error:', e);
@@ -54,6 +41,27 @@ self.addEventListener('push', function (event) {
     event.waitUntil(
         self.registration.showNotification(title, options)
     );
+});
+
+// ✅ onBackgroundMessage hanya jalan kalau push event belum handle
+messaging.onBackgroundMessage(function (payload) {
+    console.log('[SW] onBackgroundMessage:', payload);
+
+    if (isHandled) {
+        console.log('[SW] Sudah dihandle oleh push event, skip.');
+        isHandled = false; // reset flag
+        return;
+    }
+
+    const title   = payload.notification?.title || payload.data?.title || 'Notifikasi';
+    const options = {
+        body  : payload.notification?.body || payload.data?.body || '',
+        icon  : '/logo.png',
+        badge : '/logo.png',
+        data  : { url: payload.data?.url || '/admin/requests' }
+    };
+
+    self.registration.showNotification(title, options);
 });
 
 // ✅ Handle klik notifikasi

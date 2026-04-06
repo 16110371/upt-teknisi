@@ -31,12 +31,6 @@ class FirebaseService
                 "message" => [
                     "token" => $token,
 
-                    // ✅ notification block - wajib agar iOS & Android menerima notifikasi
-                    "notification" => [
-                        "title" => $title,
-                        "body"  => $body,
-                    ],
-
                     // ✅ data block - untuk service worker ambil URL
                     "data" => [
                         "title" => $title,
