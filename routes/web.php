@@ -31,15 +31,29 @@ Route::post('/save-token', function (Illuminate\Http\Request $request) {
         return response()->json(['error' => 'Token kosong'], 422);
     }
 
+    $platform = $request->platform ?? 'web';
+
+    // ✅ Simpan token baru / update kalau sudah ada
     FcmToken::updateOrCreate(
         [
             'user_id' => $user->id,
             'token'   => $request->token,
         ],
         [
-            'platform' => $request->platform ?? 'web', // ✅ simpan platform
+            'platform'   => $platform,
+            'updated_at' => now(),
         ]
     );
+
+    // ✅ Batasi maksimal 3 token per platform per user
+    $tokens = FcmToken::where('user_id', $user->id)
+        ->where('platform', $platform)
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+    if ($tokens->count() > 3) {
+        $tokens->slice(3)->each->delete();
+    }
 
     return response()->json(['success' => true]);
 })->middleware('auth');
