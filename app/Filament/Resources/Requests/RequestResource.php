@@ -28,6 +28,8 @@ class RequestResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Permintaan';
 
+    protected static ?int $navigationSort = 1;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
 

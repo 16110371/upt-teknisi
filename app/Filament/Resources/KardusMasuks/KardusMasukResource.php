@@ -23,7 +23,11 @@ class KardusMasukResource extends Resource
 
     protected static string | UnitEnum | null $navigationGroup = 'Pencatatan';
 
-    protected static ?string $recordTitleAttribute = 'nama_kardus';
+    protected static ?string $navigationLabel = 'Kardus Masuk';
+
+    protected static ?string $modelLabel = 'Kardus Masuk';
+
+    protected static ?string $pluralModelLabel = 'Kardus Masuk';
 
     public static function form(Schema $schema): Schema
     {

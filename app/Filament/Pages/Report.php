@@ -30,6 +30,8 @@ class Report extends Page implements Tables\Contracts\HasTable
 
     protected static ?string $title = 'Laporan';
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $pluralModelLabel = 'Laporan';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPrinter;
 
