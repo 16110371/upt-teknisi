@@ -11,6 +11,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\SelectFilter;
 
 class RequestsTable
 {
@@ -35,27 +36,40 @@ class RequestsTable
                     ->numeric()
                     ->sortable(),
 
+                // Tampilkan item infrastruktur
+                // TextColumn::make('infrastructure.name')
+                //     ->label('Item')
+                //     ->default('-')
+                //     ->sortable(),
+
+                // Tampilkan jumlah rusak
+                TextColumn::make('damaged_quantity')
+                    ->label('Jml Rusak')
+                    ->default('-')
+                    ->sortable(),
+
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
-                        'Pending' => 'warning',   // kuning
-                        'Proses' => 'info',       // biru muda
-                        'Selesai' => 'success',   // hijau
-                        'Dibatalkan' => 'danger', // merah
-                        default => 'gray',        // warna netral
+                        'Pending'          => 'warning',
+                        'Dikerjakan'       => 'info',
+                        'Menunggu Part'    => 'gray',
+                        'Selesai'          => 'success',
+                        'Tidak Diperbaiki' => 'danger',
+                        default            => 'gray',
                     })
                     ->badge(),
                 TextColumn::make('priority')
                     ->color(fn(string $state): string => match ($state) {
-                        'Rendah' => 'success',    // hijau
-                        'Sedang' => 'warning',    // kuning
-                        'Tinggi' => 'danger',     // merah
-                        default => 'gray',        // warna netral
+                        'Rendah' => 'success',
+                        'Sedang' => 'warning',
+                        'Tinggi' => 'danger',
+                        default => 'gray',
                     })
                     ->badge(),
-                TextColumn::make('technician.name')
-                    ->label('Teknisi')
-                    ->numeric()
-                    ->sortable(),
+                // TextColumn::make('technician.name')
+                //     ->label('Teknisi')
+                //     ->numeric()
+                //     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -66,7 +80,27 @@ class RequestsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Pending'          => 'Pending',
+                        'Dikerjakan'       => 'Dikerjakan',
+                        'Menunggu Part'    => 'Menunggu Part',
+                        'Selesai'          => 'Selesai',
+                        'Tidak Diperbaiki' => 'Tidak Diperbaiki',
+                    ]),
+
+                SelectFilter::make('priority')
+                    ->label('Prioritas')
+                    ->options([
+                        'Rendah' => 'Rendah',
+                        'Sedang' => 'Sedang',
+                        'Tinggi' => 'Tinggi',
+                    ]),
+
+                SelectFilter::make('location_id')
+                    ->label('Lokasi')
+                    ->relationship('location', 'name'),
             ])
             ->recordActions([
                 ViewAction::make()

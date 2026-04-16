@@ -23,7 +23,7 @@ class RequestStats extends StatsOverviewWidget
                 ->color('warning')
                 ->description('Menunggu'),
 
-            Stat::make('Proses', Request::where('status', 'Proses')->count())
+            Stat::make('Proses', Request::where('status', 'Dikerjakan')->count())
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('info')
                 ->description('Dikerjakan'),

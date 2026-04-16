@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PublicRequestController;
 use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
-
+use App\Models\Infrastructure;
 
 Route::get('/', function () {
     return view('index');
@@ -57,3 +57,13 @@ Route::post('/save-token', function (Illuminate\Http\Request $request) {
 
     return response()->json(['success' => true]);
 })->middleware('auth');
+
+Route::get('/api/infrastructures', function (Illuminate\Http\Request $request) {
+    return response()->json(
+        \App\Models\Infrastructure::where('location_id', $request->location_id)
+            ->where('category_id', $request->category_id)
+            ->where('good', '>', 0)
+            ->select('id', 'name', 'good', 'broken')
+            ->get()
+    );
+});

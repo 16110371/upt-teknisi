@@ -19,7 +19,7 @@
 
     <title>@yield('title', 'UPT - SMK Syubbanul Wathon')</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}" />
 
     <script src="https://cdn.tailwindcss.com"></script>
 

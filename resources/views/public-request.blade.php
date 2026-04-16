@@ -111,7 +111,35 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Section 2b: Infrastruktur (dynamic) -->
+                    <div id="infrastructure-section" style="display:none;">
+                        <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">2b</span>
+                            Detail Item
+                        </h2>
 
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-900 mb-2">
+                                    Item yang Rusak <span class="text-slate-500">(Opsional)</span>
+                                </label>
+                                <select name="infrastructure_id" id="infrastructure_id"
+                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition">
+                                    <option value="">-- Pilih Item --</option>
+                                </select>
+                            </div>
+
+                            <div id="quantity-section" style="display:none;">
+                                <label class="block text-sm font-semibold text-slate-900 mb-2">
+                                    Jumlah yang Rusak <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" name="damaged_quantity" id="damaged_quantity"
+                                    value="{{ old('damaged_quantity', 1) }}"
+                                    min="1"
+                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition">
+                            </div>
+                        </div>
+                    </div>
                     <!-- Section 3: Detail Kerusakan -->
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
@@ -301,7 +329,7 @@
 
     // Remove image
     removeBtn.addEventListener('click', function(e) {
-        e.stopPropagation(); // biar tidak buka file dialog
+        e.stopPropagation();
 
         preview.src = '';
         preview.classList.add('hidden');
@@ -346,5 +374,54 @@
         };
         reader.readAsDataURL(file);
     });
+
+    // ✅ Dynamic load infrastruktur berdasarkan lokasi & kategori
+    const locationSelect = document.querySelector('select[name="location_id"]');
+    const categorySelect = document.querySelector('select[name="category_id"]');
+    const infraSection = document.getElementById('infrastructure-section');
+    const infraSelect = document.getElementById('infrastructure_id');
+    const quantitySection = document.getElementById('quantity-section');
+
+    async function loadInfrastructures() {
+        const locationId = locationSelect.value;
+        const categoryId = categorySelect.value;
+
+        // Reset
+        infraSelect.innerHTML = '<option value="">-- Pilih Item --</option>';
+        quantitySection.style.display = 'none';
+
+        if (!locationId || !categoryId) {
+            infraSection.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/infrastructures?location_id=${locationId}&category_id=${categoryId}`);
+            const data = await response.json();
+
+            if (data.length > 0) {
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.name} (Baik: ${item.good}, Rusak: ${item.broken})`;
+                    infraSelect.appendChild(option);
+                });
+                infraSection.style.display = 'block';
+            } else {
+                infraSection.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Error load infrastruktur:', err);
+            infraSection.style.display = 'none';
+        }
+    }
+
+    // Tampilkan quantity saat item dipilih
+    infraSelect.addEventListener('change', function() {
+        quantitySection.style.display = this.value ? 'block' : 'none';
+    });
+
+    locationSelect.addEventListener('change', loadInfrastructures);
+    categorySelect.addEventListener('change', loadInfrastructures);
 </script>
 @endpush
