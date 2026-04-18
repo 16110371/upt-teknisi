@@ -18,7 +18,10 @@ class RequestsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(function ($query) {
+                $query->orderByRaw("FIELD(status, 'Pending', 'Dikerjakan', 'Menunggu Part', 'Selesai', 'Tidak Diperbaiki')")
+                    ->orderBy('created_at', 'asc');
+            })
             ->columns([
                 TextColumn::make('requester_name')
                     ->label('Nama')
