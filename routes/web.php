@@ -5,6 +5,7 @@ use App\Http\Controllers\PublicRequestController;
 use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
 use App\Models\Infrastructure;
+use App\Http\Controllers\InfrastructureReportController;
 
 Route::get('/', function () {
     return view('index');
@@ -67,3 +68,14 @@ Route::get('/api/infrastructures', function (Illuminate\Http\Request $request) {
             ->get()
     );
 });
+
+
+// ✅ Cetak semua lokasi
+Route::get('/admin/infrastructure-report', [InfrastructureReportController::class, 'print'])
+    ->middleware('auth')
+    ->name('infrastructure.report');
+
+// ✅ Cetak per lokasi
+Route::get('/admin/infrastructure-report/{locationId}', [InfrastructureReportController::class, 'print'])
+    ->middleware('auth')
+    ->name('infrastructure.report.location');
