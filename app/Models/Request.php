@@ -16,6 +16,8 @@ class Request extends Model
         'requester_contact',
         'category_id',
         'location_id',
+        'infrastructure_id',
+        'damaged_quantity',
         'description',
         'status',
         'priority',
@@ -57,6 +59,18 @@ class Request extends Model
     public function technician()
     {
         return $this->belongsTo(Technician::class);
+    }
+
+    // ✅ tambah relasi infrastruktur
+    public function infrastructure()
+    {
+        return $this->belongsTo(Infrastructure::class);
+    }
+
+    // ✅ tambah relasi log
+    public function infrastructureLogs()
+    {
+        return $this->hasMany(InfrastructureLog::class);
     }
 
     /**

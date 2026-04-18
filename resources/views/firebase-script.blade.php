@@ -30,7 +30,6 @@
 
                 console.log("TOKEN:", token);
 
-                // 🔥 INI YANG KAMU TANYAKAN
                 fetch('/save-token', {
                         method: 'POST',
                         headers: {
