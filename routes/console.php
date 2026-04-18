@@ -8,4 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('requests:check-stale')->dailyAt('08:00');
+
 Schedule::command('fcm:clean')->weekly();
