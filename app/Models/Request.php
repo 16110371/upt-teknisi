@@ -56,9 +56,9 @@ class Request extends Model
     /**
      * Relasi ke teknisi (Technician)
      */
-    public function technician()
+    public function technicians()
     {
-        return $this->belongsTo(Technician::class);
+        return $this->belongsToMany(Technician::class, 'request_technician');
     }
 
     // ✅ tambah relasi infrastruktur

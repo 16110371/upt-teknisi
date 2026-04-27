@@ -14,4 +14,9 @@ class Technician extends Model
         'phone',
         'position',
     ];
+
+    public function requests()
+    {
+        return $this->belongsToMany(Request::class, 'request_technician');
+    }
 }

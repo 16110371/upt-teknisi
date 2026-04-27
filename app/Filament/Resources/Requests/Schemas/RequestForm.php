@@ -66,9 +66,12 @@ class RequestForm
                     ])
                     ->default('Pending')
                     ->required(),
-                Select::make('technician_id')
+                Select::make('technicians')
                     ->label('Teknisi')
-                    ->relationship('technician', 'name'),
+                    ->relationship('technicians', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->nullable(),
                 DateTimePicker::make('handled_at'),
                 DateTimePicker::make('completed_at'),
                 FileUpload::make('photo')
