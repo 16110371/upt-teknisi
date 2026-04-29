@@ -104,7 +104,7 @@ class PublicRequestController extends Controller
 
     public function queue()
     {
-        $requests = Request::with(['category', 'location', 'infrastructure', 'technician'])
+        $requests = Request::with(['category', 'location', 'infrastructure'])
             ->whereIn('status', ['Pending', 'Dikerjakan', 'Menunggu Part'])
             ->orderByRaw("FIELD(priority, 'Tinggi', 'Sedang', 'Rendah')")
             ->latest()
