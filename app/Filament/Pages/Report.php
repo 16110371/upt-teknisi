@@ -40,7 +40,7 @@ class Report extends Page implements Tables\Contracts\HasTable
         return $table
             ->query(
                 Request::query()
-                    ->with(['location', 'category', 'technician'])
+                    ->with(['location', 'category', 'technicians'])
                     ->latest('request_date')
             )
 
@@ -75,7 +75,7 @@ class Report extends Page implements Tables\Contracts\HasTable
                     })
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('technician.name')
+                Tables\Columns\TextColumn::make('technicians.name')
                     ->label('Teknisi')
                     ->default('-')
                     ->searchable(),
