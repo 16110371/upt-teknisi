@@ -20,7 +20,7 @@ class RequestsTable
         return $table
             ->modifyQueryUsing(function ($query) {
                 $query->orderByRaw("FIELD(status, 'Pending', 'Dikerjakan', 'Menunggu Part', 'Selesai', 'Tidak Diperbaiki')")
-                    ->orderBy('created_at', 'asc');
+                    ->orderBy('created_at', 'desc');
             })
             ->columns([
                 TextColumn::make('requester_name')
