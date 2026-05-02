@@ -87,14 +87,17 @@ class RoomCheckPage extends Page implements HasForms
                             ->schema([
                                 TextInput::make('name')
                                     ->label('Item')
+                                    ->readOnly()
                                     ->dehydrated(true),
 
                                 TextInput::make('category')
                                     ->label('Kategori')
+                                    ->readOnly()
                                     ->dehydrated(true),
 
                                 TextInput::make('good')
                                     ->label('Kondisi Baik')
+                                    ->readOnly()
                                     ->dehydrated(true)
                                     ->numeric(),
 
@@ -119,6 +122,7 @@ class RoomCheckPage extends Page implements HasForms
                                     ->label('Keterangan Masalah')
                                     ->placeholder('Jelaskan masalah yang ditemukan...')
                                     ->rows(2)
+                                    ->required(fn($get) => $get('status') === 'Bermasalah')
                                     ->visible(fn($get) => $get('status') === 'Bermasalah'),
 
                                 // Hidden fields
@@ -178,6 +182,7 @@ class RoomCheckPage extends Page implements HasForms
                 'room_check_id'     => $roomCheck->id,
                 'infrastructure_id' => $item['infrastructure_id'],
                 'status'            => $item['status'],
+                'quantity'          => $item['status'] === 'Bermasalah' ? (int)($item['quantity'] ?? 1) : 0,
                 'note'              => $item['note'] ?? '',
             ]);
 
@@ -200,7 +205,7 @@ class RoomCheckPage extends Page implements HasForms
                     'damaged_quantity'  => $quantity,
                     'description'       => 'Ditemukan masalah saat pengecekan ruang: ' . ($item['note'] ?: 'Tidak ada keterangan'),
                     'status'            => 'Pending',
-                    'priority'          => 'Sedang',
+                    'priority'          => 'Rendah',
                 ]);
             }
         }

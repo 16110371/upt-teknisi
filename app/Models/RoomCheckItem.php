@@ -10,6 +10,7 @@ class RoomCheckItem extends Model
         'room_check_id',
         'infrastructure_id',
         'status',
+        'quantity',
         'note',
     ];
 

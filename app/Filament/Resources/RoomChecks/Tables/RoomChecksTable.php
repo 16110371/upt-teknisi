@@ -33,7 +33,7 @@ class RoomChecksTable
 
                 TextColumn::make('bermasalah_count')
                     ->label('Bermasalah')
-                    ->getStateUsing(fn($record) => $record->items->where('status', 'Bermasalah')->count())
+                    ->getStateUsing(fn($record) => $record->items->where('status', 'Bermasalah')->sum('quantity'))
                     ->color(fn($state) => $state > 0 ? 'danger' : 'success')
                     ->badge(),
 

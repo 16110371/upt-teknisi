@@ -18,6 +18,8 @@ class Request extends Model
         'location_id',
         'infrastructure_id',
         'damaged_quantity',
+        'fixed_quantity',
+        'permanent_quantity',
         'description',
         'status',
         'priority',

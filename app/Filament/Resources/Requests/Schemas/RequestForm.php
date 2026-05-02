@@ -55,6 +55,20 @@ class RequestForm
                     ->default(1)
                     ->minValue(1)
                     ->hidden(fn($get) => !$get('infrastructure_id')),
+                TextInput::make('fixed_quantity')
+                    ->label('Jumlah Diperbaiki')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->helperText('Jumlah yang berhasil diperbaiki'),
+                TextInput::make('permanent_quantity')
+                    ->label('Jumlah Rusak Permanen')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->helperText('Jumlah yang tidak bisa diperbaiki'),
                 Select::make('status')
                     ->label('Status')
                     ->options([
