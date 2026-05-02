@@ -36,4 +36,9 @@ class Infrastructure extends Model
     {
         return $this->hasMany(InfrastructureLog::class);
     }
+
+    public function roomCheckItems()
+    {
+        return $this->hasMany(RoomCheckItem::class);
+    }
 }

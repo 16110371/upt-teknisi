@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
 
 class UserForm
 {
@@ -22,6 +23,15 @@ class UserForm
                     ->required()
                     ->unique(ignoreRecord: true) // ✅ cegah email duplikat saat edit
                     ->maxLength(255),
+
+                Select::make('role')
+                    ->label('Role')
+                    ->options([
+                        'admin' => 'Admin',
+                        'staff' => 'Staff',
+                    ])
+                    ->default('staff')
+                    ->required(),
 
                 TextInput::make('password')
                     ->label('Password')
