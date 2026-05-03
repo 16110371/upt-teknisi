@@ -12,6 +12,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Actions;
 
 class RoomCheckForm
 {
@@ -117,6 +118,12 @@ class RoomCheckForm
                 //             ->placeholder('Catatan tambahan untuk pengecekan ini...')
                 //             ->rows(3),
                 //     ]),
+                Actions::make([
+                    \Filament\Actions\Action::make('submit')
+                        ->label('✅ Simpan Pengecekan')
+                        ->submit('submit')
+                        ->color('primary'),
+                ]),
             ]);
     }
 }

@@ -20,9 +20,11 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
-use Filament\Actions\Action;
+// use Filament\Actions\Action;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Hidden;
+use Filament\Schemas\Components\Actions;
+use Filament\Actions\Action as SchemaAction;
 
 class RoomCheckPage extends Page implements HasForms
 {
@@ -144,6 +146,12 @@ class RoomCheckPage extends Page implements HasForms
                 //             ->placeholder('Catatan tambahan untuk pengecekan ini...')
                 //             ->rows(3),
                 //     ]),
+                Actions::make([
+                    \Filament\Actions\Action::make('submit')
+                        ->label('✅ Simpan Pengecekan')
+                        ->submit('submit')
+                        ->color('primary'),
+                ]),
             ])
             ->statePath('data');
     }
