@@ -45,14 +45,38 @@ class InfrastructureForm
                     ->numeric()
                     ->default(0)
                     ->minValue(0)
-                    ->required(),
+                    ->required()
+                    ->rules([
+                        fn($get) => function ($attribute, $value, $fail) use ($get) {
+                            $total     = (int) $get('total');
+                            $good      = (int) $value;
+                            $broken    = (int) $get('broken');
+                            $permanent = (int) $get('permanent_broken');
+
+                            if ($good + $broken + $permanent > $total) {
+                                $fail('Jumlah baik + rusak + rusak permanen tidak boleh melebihi total.');
+                            }
+                        }
+                    ]),
 
                 TextInput::make('broken')
                     ->label('Kondisi Rusak')
                     ->numeric()
                     ->default(0)
                     ->minValue(0)
-                    ->required(),
+                    ->required()
+                    ->rules([
+                        fn($get) => function ($attribute, $value, $fail) use ($get) {
+                            $total     = (int) $get('total');
+                            $good      = (int) $get('good');
+                            $broken    = (int) $value;
+                            $permanent = (int) $get('permanent_broken');
+
+                            if ($good + $broken + $permanent > $total) {
+                                $fail('Jumlah baik + rusak + rusak permanen tidak boleh melebihi total.');
+                            }
+                        }
+                    ]),
 
                 TextInput::make('permanent_broken')
                     ->label('Rusak Permanen')
@@ -60,7 +84,19 @@ class InfrastructureForm
                     ->default(0)
                     ->minValue(0)
                     ->required()
-                    ->helperText('Jumlah item yang tidak dapat diperbaiki'),
+                    ->helperText('Jumlah item yang tidak dapat diperbaiki')
+                    ->rules([
+                        fn($get) => function ($attribute, $value, $fail) use ($get) {
+                            $total     = (int) $get('total');
+                            $good      = (int) $get('good');
+                            $broken    = (int) $get('broken');
+                            $permanent = (int) $value;
+
+                            if ($good + $broken + $permanent > $total) {
+                                $fail('Jumlah baik + rusak + rusak permanen tidak boleh melebihi total.');
+                            }
+                        }
+                    ]),
 
                 Textarea::make('note')
                     ->label('Catatan')

@@ -55,6 +55,29 @@ class CreateRoomCheck extends Page implements HasForms
             return;
         }
 
+        foreach ($data['items'] as $item) {
+            if ($item['status'] === 'Bermasalah') {
+                $quantity = (int) ($item['quantity'] ?? 1);
+                $good     = (int) ($item['good'] ?? 0);
+
+                if ($quantity > $good) {
+                    Notification::make()
+                        ->title("Jumlah bermasalah {$item['name']} melebihi kondisi baik ({$good})!")
+                        ->danger()
+                        ->send();
+                    return;
+                }
+
+                if ($quantity <= 0) {
+                    Notification::make()
+                        ->title("Jumlah bermasalah {$item['name']} harus lebih dari 0!")
+                        ->danger()
+                        ->send();
+                    return;
+                }
+            }
+        }
+
         $roomCheck = RoomCheck::create([
             'location_id' => $data['location_id'],
             'user_id'     => Auth::id(),
@@ -87,10 +110,10 @@ class CreateRoomCheck extends Page implements HasForms
                     'location_id'       => $data['location_id'],
                     'infrastructure_id' => $item['infrastructure_id'],
                     'damaged_quantity'  => $quantity,
-                    'from_room_check'   => true, // ✅ tandai dari pengecekan
+                    'from_room_check'   => true,
                     'description'       => 'Ditemukan masalah saat pengecekan ruang: ' . ($item['note'] ?: 'Tidak ada keterangan'),
                     'status'            => 'Pending',
-                    'priority'          => 'Sedang',
+                    'priority'          => 'Rendah',
                 ]);
             }
         }
