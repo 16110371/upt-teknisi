@@ -20,6 +20,7 @@ class Request extends Model
         'damaged_quantity',
         'fixed_quantity',
         'permanent_quantity',
+        'from_room_check',
         'description',
         'status',
         'priority',

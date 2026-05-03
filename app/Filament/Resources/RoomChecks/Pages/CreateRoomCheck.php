@@ -87,6 +87,7 @@ class CreateRoomCheck extends Page implements HasForms
                     'location_id'       => $data['location_id'],
                     'infrastructure_id' => $item['infrastructure_id'],
                     'damaged_quantity'  => $quantity,
+                    'from_room_check'   => true, // ✅ tandai dari pengecekan
                     'description'       => 'Ditemukan masalah saat pengecekan ruang: ' . ($item['note'] ?: 'Tidak ada keterangan'),
                     'status'            => 'Pending',
                     'priority'          => 'Sedang',

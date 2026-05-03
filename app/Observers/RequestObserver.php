@@ -4,11 +4,20 @@ namespace App\Observers;
 
 use App\Models\InfrastructureLog;
 use App\Models\Request;
+use Illuminate\Support\Facades\Log;
 
 class RequestObserver
 {
     public function updated(Request $request): void
     {
+        Log::info('Observer triggered', [
+            'status_changed' => $request->wasChanged('status'),
+            'old_status'     => $request->getOriginal('status'),
+            'new_status'     => $request->status,
+            'fixed'          => $request->fixed_quantity,
+            'permanent'      => $request->permanent_quantity,
+            'damaged'        => $request->damaged_quantity,
+        ]);
         if (
             !$request->wasChanged('status') &&
             !$request->wasChanged('fixed_quantity') &&
@@ -33,10 +42,12 @@ class RequestObserver
 
             if ($request->infrastructure_id) {
                 $infra = $request->infrastructure;
-                $infra->update([
-                    'good'   => max(0, $infra->good - $damaged),
-                    'broken' => $infra->broken + $damaged,
-                ]);
+                if (!$request->from_room_check) {
+                    $infra->update([
+                        'good'   => max(0, $infra->good - $damaged),
+                        'broken' => $infra->broken + $damaged,
+                    ]);
+                }
                 $this->log($infra->id, $request->id, 'rusak', $damaged, 'Dikerjakan dari Pending');
             }
         }
@@ -51,11 +62,12 @@ class RequestObserver
             }
 
             if ($request->infrastructure_id) {
-                $infra = $request->infrastructure;
-                $infra->update([
-                    'good'   => max(0, $infra->good - $damaged),
-                    'broken' => $infra->broken + $damaged,
-                ]);
+                if (!$request->from_room_check) {
+                    $infra->update([
+                        'good'   => max(0, $infra->good - $damaged),
+                        'broken' => $infra->broken + $damaged,
+                    ]);
+                }
                 $this->log($infra->id, $request->id, 'rusak', $damaged, 'Menunggu Part dari Pending');
             }
         }
@@ -72,11 +84,20 @@ class RequestObserver
 
             if ($request->infrastructure_id) {
                 $infra = $request->infrastructure;
-                $infra->update([
-                    'good'             => max(0, $infra->good - $damaged + $fixed),
-                    'broken'           => max(0, $infra->broken),
-                    'permanent_broken' => $infra->permanent_broken + $permanent,
-                ]);
+                if ($request->from_room_check) {
+                    // ✅ Dari room check: good + fixed, broken - damaged, permanent + permanent
+                    $infra->update([
+                        'good'             => $infra->good + $fixed,
+                        'broken'           => max(0, $infra->broken - $damaged + ($damaged - $fixed - $permanent)),
+                        'permanent_broken' => $infra->permanent_broken + $permanent,
+                    ]);
+                } else {
+                    $infra->update([
+                        'good'             => max(0, $infra->good - $damaged + $fixed),
+                        'broken'           => max(0, $infra->broken),
+                        'permanent_broken' => $infra->permanent_broken + $permanent,
+                    ]);
+                }
                 $this->log($infra->id, $request->id, 'selesai', $fixed, 'Langsung selesai dari Pending');
             }
         }
