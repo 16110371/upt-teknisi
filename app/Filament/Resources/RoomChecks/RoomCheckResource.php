@@ -55,7 +55,6 @@ class RoomCheckResource extends Resource
             'index'  => ListRoomChecks::route('/'),
             'create' => CreateRoomCheck::route('/create'),
             'edit'   => EditRoomCheck::route('/{record}/edit'),
-            'view'   => ViewRoomCheck::route('/{record}'), // ✅ tambah
         ];
     }
 }

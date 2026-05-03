@@ -81,7 +81,7 @@ class CreateRoomCheck extends Page implements HasForms
         $roomCheck = RoomCheck::create([
             'location_id' => $data['location_id'],
             'user_id'     => Auth::id(),
-            'note'        => $data['general_note'] ?? '',
+            'note'        => '',
         ]);
 
         foreach ($data['items'] as $item) {

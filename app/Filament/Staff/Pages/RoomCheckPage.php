@@ -137,13 +137,13 @@ class RoomCheckPage extends Page implements HasForms
                     ])
                     ->visible(fn($get) => filled($this->data['location_id'] ?? null)),
 
-                Section::make('Catatan')
-                    ->schema([
-                        Textarea::make('general_note')
-                            ->label('Catatan Umum')
-                            ->placeholder('Catatan tambahan untuk pengecekan ini...')
-                            ->rows(3),
-                    ]),
+                // Section::make('Catatan')
+                //     ->schema([
+                //         Textarea::make('general_note')
+                //             ->label('Catatan Umum')
+                //             ->placeholder('Catatan tambahan untuk pengecekan ini...')
+                //             ->rows(3),
+                //     ]),
             ])
             ->statePath('data');
     }
@@ -195,7 +195,7 @@ class RoomCheckPage extends Page implements HasForms
         $roomCheck = RoomCheck::create([
             'location_id' => $data['location_id'],
             'user_id'     => Auth::id(),
-            'note'        => $data['general_note'] ?? '',
+            'note'        => '',
         ]);
 
         foreach ($data['items'] as $item) {

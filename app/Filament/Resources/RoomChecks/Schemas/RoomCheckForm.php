@@ -110,13 +110,13 @@ class RoomCheckForm
                             ->reorderable(false),
                     ]),
 
-                Section::make('Catatan')
-                    ->schema([
-                        Textarea::make('general_note')
-                            ->label('Catatan Umum')
-                            ->placeholder('Catatan tambahan untuk pengecekan ini...')
-                            ->rows(3),
-                    ]),
+                // Section::make('Catatan')
+                //     ->schema([
+                //         Textarea::make('general_note')
+                //             ->label('Catatan Umum')
+                //             ->placeholder('Catatan tambahan untuk pengecekan ini...')
+                //             ->rows(3),
+                //     ]),
             ]);
     }
 }
