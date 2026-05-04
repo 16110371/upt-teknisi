@@ -50,6 +50,6 @@ class LoginAdmin extends Login
 
     public function getHeading(): string
     {
-        return __('Sistem UPT');
+        return __('Admin UPT');
     }
 }

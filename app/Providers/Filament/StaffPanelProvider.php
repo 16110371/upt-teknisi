@@ -27,6 +27,8 @@ class StaffPanelProvider extends PanelProvider
             ->id('staff')
             ->path('staff')
             ->login()
+            ->brandLogo(asset('images/logo.png'))
+            ->brandLogoHeight('40px')
             ->darkMode(false)
             ->colors([
                 'primary' => Color::Blue,
