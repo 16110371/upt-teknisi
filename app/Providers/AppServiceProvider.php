@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Request;
 use App\Observers\RequestObserver;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Request::observe(RequestObserver::class); // ✅ tambah ini
+        Request::observe(RequestObserver::class);
+
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }

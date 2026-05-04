@@ -13,7 +13,9 @@ Route::get('/', function () {
 
 
 Route::get('/permintaan', [PublicRequestController::class, 'create'])->name('public-request.create');
-Route::post('/permintaan', [PublicRequestController::class, 'store'])->name('public-request.store');
+Route::post('/permintaan', [PublicRequestController::class, 'store'])
+    ->name('public-request.store')
+    ->middleware('throttle:5,1');
 
 // Route::get('/antrian', [QueueController::class, 'index'])
 //     ->name('public.queue');
