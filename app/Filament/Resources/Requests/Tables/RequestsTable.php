@@ -51,6 +51,19 @@ class RequestsTable
                     ->default('-')
                     ->sortable(),
 
+                TextColumn::make('fixed_quantity')
+                    ->label('Diperbaiki')
+                    ->default('-')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('permanent_quantity')
+                    ->label('Permanen')
+                    ->default('-')
+                    ->sortable()
+                    ->color(fn($state) => $state > 0 ? 'danger' : 'gray')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'Pending'          => 'warning',

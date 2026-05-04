@@ -55,6 +55,53 @@ class RequestForm
                     ->default(1)
                     ->minValue(1)
                     ->hidden(fn($get) => !$get('infrastructure_id')),
+                TextInput::make('fixed_quantity')
+                    ->label('Jumlah Diperbaiki')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->dehydrated(true)
+                    ->helperText('Jumlah yang berhasil diperbaiki')
+                    ->rules([
+                        fn($get) => function ($attribute, $value, $fail) use ($get) {
+                            $status    = $get('status');
+                            $damaged   = (int) $get('damaged_quantity') ?? 1;
+                            $fixed     = (int) $value ?? 0;
+                            $permanent = (int) $get('permanent_quantity') ?? 0;
+
+                            if (in_array($status, ['Selesai', 'Tidak Diperbaiki'])) {
+                                if ($fixed + $permanent === 0) {
+                                    $fail('Jumlah diperbaiki dan rusak permanen harus diisi jika status Selesai/Tidak Diperbaiki.');
+                                }
+                                if ($fixed + $permanent > $damaged) {
+                                    $fail('Jumlah diperbaiki + rusak permanen tidak boleh melebihi jumlah rusak.');
+                                }
+                            }
+                        }
+                    ]),
+                TextInput::make('permanent_quantity')
+                    ->label('Jumlah Rusak Permanen')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->dehydrated(true)
+                    ->helperText('Jumlah yang tidak bisa diperbaiki')
+                    ->rules([
+                        fn($get) => function ($attribute, $value, $fail) use ($get) {
+                            $status    = $get('status');
+                            $damaged   = (int) $get('damaged_quantity') ?? 1;
+                            $fixed     = (int) $get('fixed_quantity') ?? 0;
+                            $permanent = (int) $value ?? 0;
+
+                            if (in_array($status, ['Selesai', 'Tidak Diperbaiki'])) {
+                                if ($fixed + $permanent > $damaged) {
+                                    $fail('Jumlah diperbaiki + rusak permanen tidak boleh melebihi jumlah rusak.');
+                                }
+                            }
+                        }
+                    ]),
                 Select::make('status')
                     ->label('Status')
                     ->options([
