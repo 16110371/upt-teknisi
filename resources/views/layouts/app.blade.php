@@ -16,6 +16,12 @@
 
     <link rel="apple-touch-icon" href="/images/icon-192.png">
 
+    {{-- iOS Splash Screen --}}
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="UPT">
+    <link rel="apple-touch-startup-image" href="/images/splash.png">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
 
     <title>@yield('title', 'UPT - SMK Syubbanul Wathon')</title>
 
