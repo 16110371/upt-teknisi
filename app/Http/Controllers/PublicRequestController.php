@@ -31,16 +31,22 @@ class PublicRequestController extends Controller
     {
 
         $validated = $request->validate([
-            'request_date' => 'nullable|date',
-            'requester_name' => 'required|string|max:100',
+            'request_date'      => 'nullable|date',
+            'requester_name'    => 'required|string|max:100',
             'requester_contact' => 'nullable|string|max:50',
-            'category_id' => 'required|exists:categories,id',
-            'location_id' => 'required|exists:locations,id',
-            'infrastructure_id'  => 'nullable|exists:infrastructures,id',
-            'damaged_quantity'   => 'nullable|integer|min:1',
-            'description' => 'required|string',
-            'priority' => 'nullable|string|in:Rendah,Sedang,Tinggi',
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:8192',
+            'category_id'       => 'required|exists:categories,id',
+            'location_id'       => 'required|exists:locations,id',
+            'infrastructure_id' => 'nullable|exists:infrastructures,id',
+            'damaged_quantity'  => 'nullable|integer|min:1',
+            'description'       => 'required|string|max:2000',
+            'priority'          => 'nullable|string|in:Rendah,Sedang,Tinggi',
+            'photo'             => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:8192',
+                'dimensions:min_width=100,min_height=100,max_width=5000,max_height=5000',
+            ],
         ]);
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
