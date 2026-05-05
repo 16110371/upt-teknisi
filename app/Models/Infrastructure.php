@@ -41,4 +41,14 @@ class Infrastructure extends Model
     {
         return $this->hasMany(RoomCheckItem::class);
     }
+
+    public function units()
+    {
+        return $this->hasMany(InfrastructureUnit::class);
+    }
+
+    public function activeUnits()
+    {
+        return $this->hasMany(InfrastructureUnit::class)->where('is_active', true);
+    }
 }
