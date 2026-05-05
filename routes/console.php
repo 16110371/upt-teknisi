@@ -11,3 +11,5 @@ Artisan::command('inspire', function () {
 Schedule::command('requests:check-stale')->dailyAt('08:00');
 
 Schedule::command('fcm:clean')->weekly();
+
+Schedule::command('images:clean')->weekly();
