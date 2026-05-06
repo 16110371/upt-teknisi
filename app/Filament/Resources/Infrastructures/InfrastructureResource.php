@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Infrastructures;
 use App\Filament\Resources\Infrastructures\Pages\CreateInfrastructure;
 use App\Filament\Resources\Infrastructures\Pages\EditInfrastructure;
 use App\Filament\Resources\Infrastructures\Pages\ListInfrastructures;
+use App\Filament\Resources\Infrastructures\RelationManagers\UnitsRelationManager;
 use App\Filament\Resources\Infrastructures\Schemas\InfrastructureForm;
 use App\Filament\Resources\Infrastructures\Tables\InfrastructuresTable;
 use App\Models\Infrastructure;
@@ -45,7 +46,9 @@ class InfrastructureResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            UnitsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
