@@ -21,6 +21,8 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Filament\Actions\Action;
 
 class UnitsRelationManager extends RelationManager
 {
@@ -196,6 +198,19 @@ class UnitsRelationManager extends RelationManager
                     ->label('Tambah Unit'),
             ])
             ->recordActions([
+                Action::make('qrcode')
+                    ->label('QR')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->modalHeading(fn($record) => 'QR Code - ' . $record->code)
+                    ->modalContent(fn($record) => new \Illuminate\Support\HtmlString(
+                        '<div style="text-align:center; padding: 20px;">' .
+                            QrCode::size(250)->generate(url('/unit/' . $record->code)) .
+                            '<p style="margin-top: 12px; font-weight: bold;">' . $record->code . '</p>' .
+                            '</div>'
+                    ))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup'),
                 ViewAction::make()->label(''),
                 EditAction::make()->label(''),
                 DeleteAction::make()->label(''),

@@ -6,6 +6,7 @@ use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
 use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
+use App\Http\Controllers\UnitController;
 
 Route::get('/', function () {
     return view('index');
@@ -81,3 +82,8 @@ Route::get('/admin/infrastructure-report', [InfrastructureReportController::clas
 Route::get('/admin/infrastructure-report/{locationId}', [InfrastructureReportController::class, 'print'])
     ->middleware('auth')
     ->name('infrastructure.report.location');
+
+
+Route::get('/unit/{code}', [UnitController::class, 'show'])->name('unit.show');
+Route::post('/unit/{code}/report', [UnitController::class, 'report'])->name('unit.report')
+    ->middleware('throttle:5,1');
