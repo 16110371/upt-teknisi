@@ -87,8 +87,8 @@ class AdminPanelProvider extends PanelProvider
             )
             ->sidebarCollapsibleOnDesktop()
             ->renderHook(
-                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-                fn() => Blade::render('@livewire(\'qr-scanner\')')
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn() => view('components.qr-scanner-button')
             );
     }
 }

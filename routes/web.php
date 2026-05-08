@@ -87,3 +87,32 @@ Route::get('/admin/infrastructure-report/{locationId}', [InfrastructureReportCon
 Route::get('/unit/{code}', [UnitController::class, 'show'])->name('unit.show');
 Route::post('/unit/{code}/report', [UnitController::class, 'report'])->name('unit.report')
     ->middleware('throttle:5,1');
+
+Route::get('/api/unit/{code}', function (string $code) {
+    $unit = \App\Models\InfrastructureUnit::with([
+        'infrastructure.location',
+        'infrastructure.category',
+        'logs' => fn($q) => $q->latest()->limit(5),
+        'logs.request',
+    ])->where('code', $code)->first();
+
+    if (!$unit) {
+        return response()->json(['error' => 'Unit tidak ditemukan']);
+    }
+
+    return response()->json([
+        'id'       => $unit->id,
+        'code'     => $unit->code,
+        'status'   => $unit->status,
+        'note'     => $unit->note,
+        'location' => $unit->infrastructure->location->name,
+        'category' => $unit->infrastructure->category->name,
+        'name'     => $unit->infrastructure->name,
+        'logs'     => $unit->logs->map(fn($log) => [
+            'type'           => $log->type,
+            'note'           => $log->note,
+            'requester_name' => $log->request?->requester_name ?? '-',
+            'created_at'     => $log->created_at->translatedFormat('d M Y, H:i'),
+        ]),
+    ]);
+});
