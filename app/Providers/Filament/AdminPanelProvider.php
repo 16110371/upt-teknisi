@@ -89,6 +89,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn() => view('components.qr-scanner-button')
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn() => view('components.qr-scanner-modal')
             );
     }
 }
