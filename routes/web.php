@@ -6,6 +6,7 @@ use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
 use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
+use App\Http\Controllers\ProcurementPrintController;
 use App\Http\Controllers\UnitController;
 
 Route::get('/', function () {
@@ -115,4 +116,9 @@ Route::get('/api/unit/{code}', function (string $code) {
             'created_at'     => $log->created_at->translatedFormat('d M Y, H:i'),
         ]),
     ]);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/procurement/{record}/print', [ProcurementPrintController::class, 'printSingle'])->name('procurement.print');
+    Route::get('/procurement/bulk-print/{ids}', [ProcurementPrintController::class, 'printBulk'])->name('procurement.print_bulk');
 });
