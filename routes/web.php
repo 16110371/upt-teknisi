@@ -116,3 +116,7 @@ Route::get('/api/unit/{code}', function (string $code) {
         ]),
     ]);
 });
+
+Route::get('/admin/unit/{id}/qr-pdf', [UnitController::class, 'printQr'])
+    ->middleware('auth')
+    ->name('unit.qr.pdf');

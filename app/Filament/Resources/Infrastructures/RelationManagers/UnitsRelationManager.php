@@ -21,8 +21,8 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Filament\Actions\Action;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class UnitsRelationManager extends RelationManager
 {
@@ -214,6 +214,12 @@ class UnitsRelationManager extends RelationManager
                 ViewAction::make()->label(''),
                 EditAction::make()->label(''),
                 DeleteAction::make()->label(''),
+                Action::make('print_qr')
+                    ->label('QR')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('success')
+                    ->url(fn($record) => route('unit.qr.pdf', $record->id))
+                    ->openUrlInNewTab(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

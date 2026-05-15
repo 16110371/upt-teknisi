@@ -10,6 +10,8 @@ use App\Models\UnitLog;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UnitController extends Controller
 {
@@ -81,5 +83,23 @@ class UnitController extends Controller
         }
 
         return redirect()->route('unit.show', $code)->with('success', true);
+    }
+
+    public function printQr(int $id)
+    {
+        $unit = InfrastructureUnit::with([
+            'infrastructure.location',
+            'infrastructure.category',
+        ])->findOrFail($id);
+
+        // ✅ Generate QR Code sebagai SVG
+        $qrCode = QrCode::size(200)
+            ->format('svg')
+            ->generate(url('/unit/' . $unit->code));
+
+        $pdf = Pdf::loadView('pdf.unit-qr', compact('unit', 'qrCode'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('qr-' . $unit->code . '.pdf');
     }
 }
