@@ -92,10 +92,12 @@ class UnitController extends Controller
             'infrastructure.category',
         ])->findOrFail($id);
 
-        // ✅ Generate QR Code sebagai SVG
-        $qrCode = QrCode::size(200)
-            ->format('svg')
-            ->generate(url('/unit/' . $unit->code));
+        // ✅ Generate QR Code sebagai PNG base64
+        $qrCode = base64_encode(
+            QrCode::size(200)
+                ->format('png')
+                ->generate(url('/unit/' . $unit->code))
+        );
 
         $pdf = Pdf::loadView('pdf.unit-qr', compact('unit', 'qrCode'))
             ->setPaper('a4', 'portrait');

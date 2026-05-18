@@ -74,8 +74,9 @@
         <p class="school-name">SMK Syubbanul Wathon</p>
 
         {{-- QR Code --}}
+        {{-- QR Code --}}
         <div class="qr-code">
-            {!! $qrCode !!}
+            <img src="data:image/png;base64,{{ $qrCode }}" width="200" height="200" alt="QR Code">
         </div>
 
         {{-- Kode Unit --}}
