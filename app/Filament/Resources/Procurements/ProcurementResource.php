@@ -13,14 +13,23 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ProcurementResource extends Resource
 {
     protected static ?string $model = Procurement::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Pencatatan';
+
+    protected static ?string $navigationLabel = 'Pengadaan Barang';
+
+    protected static ?string $modelLabel = 'Pengadaan Barang';
+
+    protected static ?string $pluralModelLabel = 'Pengadaan Barang';
 
     public static function form(Schema $schema): Schema
     {

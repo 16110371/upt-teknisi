@@ -11,6 +11,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use App\Models\Procurement;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction as ActionsBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
@@ -96,19 +97,22 @@ class ProcurementsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    BulkAction::make('print_bulk')
+                    ActionsBulkAction::make('print_bulk')
                         ->label('Cetak Terpilih (PDF)')
                         ->icon('heroicon-o-printer')
                         ->color('success')
-                        ->requiresConfirmation() // Menampilkan konfirmasi sebelum cetak
+                        ->requiresConfirmation()
                         ->modalHeading('Cetak Laporan Kolektif')
                         ->modalDescription('Apakah Anda yakin ingin mencetak semua item yang dipilih dalam satu laporan?')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
-                            // Ambil semua ID yang dipilih
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records, \Filament\Actions\BulkAction $action) {
+                            // 1. Ambil semua ID yang dipilih
                             $ids = $records->pluck('id')->implode(',');
 
-                            // Redirect ke route cetak rekap (Pastikan route ini sudah ada di web.php)
-                            return redirect()->route('procurement.print_bulk', ['ids' => $ids]);
+                            // 2. Generate URL ke route cetak
+                            $url = route('procurement.print_bulk', ['ids' => $ids]);
+
+                            // 3. Panggil fungsi JS via getLivewire() untuk membuka tab baru dengan aman
+                            $action->getLivewire()->js("window.open('{$url}', '_blank')");
                         }),
                 ]),
             ]);
