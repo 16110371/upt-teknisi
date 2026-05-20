@@ -85,6 +85,7 @@ class UnitController extends Controller
         return redirect()->route('unit.show', $code)->with('success', true);
     }
 
+
     public function printQr(int $id)
     {
         $unit = InfrastructureUnit::with([
@@ -92,16 +93,45 @@ class UnitController extends Controller
             'infrastructure.category',
         ])->findOrFail($id);
 
-        // ✅ Generate QR Code sebagai PNG base64
-        $qrCode = base64_encode(
-            QrCode::size(200)
-                ->format('png')
-                ->generate(url('/unit/' . $unit->code))
-        );
+        // ✅ Pakai SVG tapi di-encode untuk DomPDF
+        $qrSvg = QrCode::size(200)
+            ->format('svg')
+            ->generate(url('/unit/' . $unit->code));
 
-        $pdf = Pdf::loadView('pdf.unit-qr', compact('unit', 'qrCode'))
+        // ✅ Convert SVG ke base64
+        $qrBase64 = base64_encode($qrSvg);
+
+        $pdf = Pdf::loadView('pdf.unit-qr', compact('unit', 'qrBase64'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('qr-' . $unit->code . '.pdf');
+    }
+
+    public function printAllQr(int $id)
+    {
+        $units = InfrastructureUnit::with([
+            'infrastructure.location',
+            'infrastructure.category',
+        ])
+            ->where('infrastructure_id', $id)
+            ->where('is_active', true)
+            ->get();
+
+        // ✅ Generate QR Code untuk semua unit
+        $unitsWithQr = $units->map(function ($unit) {
+            $qrSvg = QrCode::size(150)
+                ->format('svg')
+                ->generate(url('/unit/' . $unit->code));
+
+            return [
+                'unit'     => $unit,
+                'qrBase64' => base64_encode($qrSvg),
+            ];
+        });
+
+        $pdf = Pdf::loadView('pdf.units-qr-all', compact('unitsWithQr'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('qr-all.pdf');
     }
 }

@@ -196,6 +196,12 @@ class UnitsRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('Tambah Unit'),
+                Action::make('print_all_qr')
+                    ->label('Cetak Semua QR')
+                    ->icon('heroicon-o-printer')
+                    ->color('success')
+                    ->url(fn() => route('unit.qr.all.pdf', $this->ownerRecord->id))
+                    ->openUrlInNewTab(),
             ])
             ->recordActions([
                 Action::make('qrcode')
