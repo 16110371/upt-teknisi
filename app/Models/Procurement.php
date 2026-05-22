@@ -14,5 +14,14 @@ class Procurement extends Model
         'description',
         'status',
         'requested_at',
+        'requested_by',
+        'position',
+        'location_id',
+        'signed_document_photo',
     ];
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class, 'location_id');
+    }
 }

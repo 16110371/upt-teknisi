@@ -6,6 +6,7 @@ use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
 use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
+use App\Http\Controllers\ProcurementPrintController;
 
 Route::get('/', function () {
     return view('index');
@@ -81,3 +82,8 @@ Route::get('/admin/infrastructure-report', [InfrastructureReportController::clas
 Route::get('/admin/infrastructure-report/{locationId}', [InfrastructureReportController::class, 'print'])
     ->middleware('auth')
     ->name('infrastructure.report.location');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/procurement/{record}/print', [ProcurementPrintController::class, 'printSingle'])->name('procurement.print');
+    Route::get('/procurement/bulk-print/{ids}', [ProcurementPrintController::class, 'printBulk'])->name('procurement.print_bulk');
+});
