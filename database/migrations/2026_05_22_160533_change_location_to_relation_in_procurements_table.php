@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('procurements', function (Blueprint $table) {
-            // Menambahkan relasi foreign key secara manual karena kolom sudah ada
+            // 1. Pastikan dulu kolom location_id ada dengan tipe data yang sama dengan id di tabel locations
+            // Jika sudah ada sebelumnya, ganti menjadi unsignedBigInteger agar bisa jadi foreign key
+            $table->unsignedBigInteger('location_id')->nullable()->after('description');
+
+            // 2. Sekarang baru pasang foreign key-nya
             $table->foreign('location_id')->references('id')->on('locations')->onDelete('cascade');
         });
     }
