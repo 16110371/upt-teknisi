@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Procurement extends Model
 {
@@ -23,5 +24,16 @@ class Procurement extends Model
     public function location()
     {
         return $this->belongsTo(Location::class, 'location_id');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($procurement) {
+            // Cek apakah ada file yang tersimpan di kolom tersebut
+            if ($procurement->signed_document_photo) {
+                // Hapus file dari disk 'local'
+                Storage::disk('local')->delete($procurement->signed_document_photo);
+            }
+        });
     }
 }
