@@ -259,7 +259,8 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script> -->
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         function qrScannerPublic() {
             return {
@@ -267,22 +268,14 @@
                 unit: null,
                 error: '',
                 scanner: null,
+                stream: null,
 
                 async openModal() {
                     this.open = true;
                     this.unit = null;
                     this.error = '';
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({
-                            video: {
-                                facingMode: 'environment'
-                            }
-                        });
-                        stream.getTracks().forEach(track => track.stop());
-                        this.$nextTick(() => setTimeout(() => this.startScanner(), 300));
-                    } catch (err) {
-                        this.error = 'Izin kamera ditolak. Buka pengaturan browser → izinkan akses kamera.';
-                    }
+
+                    this.$nextTick(() => setTimeout(() => this.startScanner(), 500));
                 },
 
                 closeModal() {
@@ -294,35 +287,70 @@
                 startScanner() {
                     const el = document.getElementById('qr-reader-public');
                     if (!el) return;
-                    this.stopScanner();
-                    this.scanner = new Html5Qrcode('qr-reader-public');
-                    this.scanner.start({
-                            facingMode: 'environment'
-                        }, {
-                            fps: 10,
-                            qrbox: {
-                                width: 200,
-                                height: 200
+
+                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                    const video = document.getElementById('qr-video');
+                    const canvas = document.getElementById('qr-canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // ✅ Langsung getUserMedia - browser akan popup minta izin
+                    navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: {
+                                ideal: 'environment'
+                            }, // ✅ ideal bukan exact
+                            width: {
+                                ideal: 1280
                             },
-                            aspectRatio: 1.0
-                        },
-                        async (text) => {
-                                await this.stopScanner();
-                                await this.fetchUnit(text);
-                            },
-                            () => {}
-                    ).catch(() => {
-                        this.error = 'Tidak dapat mengakses kamera. Pastikan izin kamera sudah diberikan.';
+                            height: {
+                                ideal: 720
+                            }
+                        }
+                    }).then(stream => {
+                        this.stream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                        this.scanFrame(video, canvas, ctx);
+                    }).catch(err => {
+                        if (err.name === 'NotAllowedError') {
+                            this.error = 'Izin kamera ditolak. Ketuk ikon kunci di address bar → izinkan kamera.';
+                        } else if (err.name === 'NotFoundError') {
+                            this.error = 'Kamera tidak ditemukan.';
+                        } else {
+                            this.error = 'Error kamera: ' + err.message;
+                        }
                     });
+                },
+                scanFrame(video, canvas, ctx) {
+                    if (!this.open || this.unit) return;
+
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert',
+                        });
+
+                        if (code) {
+                            this.stopScanner();
+                            this.fetchUnit(code.data);
+                            return;
+                        }
+                    }
+
+                    // ✅ Scan terus setiap 100ms
+                    setTimeout(() => this.scanFrame(video, canvas, ctx), 100);
                 },
 
                 stopScanner() {
-                    if (this.scanner) {
-                        return this.scanner.stop().catch(() => {}).finally(() => {
-                            this.scanner = null;
-                        });
+                    if (this.stream) {
+                        this.stream.getTracks().forEach(track => track.stop());
+                        this.stream = null;
                     }
-                    return Promise.resolve();
                 },
 
                 async fetchUnit(text) {
