@@ -308,12 +308,32 @@
                                 }
                             }
                         });
-                        stream.getTracks().forEach(track => track.stop());
+
+                        alert('Stream berhasil: ' + stream.getTracks().length + ' track'); // ✅ debug
+
+                        this.stream = stream;
                         this.error = '';
                         this.permissionGranted = true;
-                        setTimeout(() => this.startScanner(), 300);
+
+                        const el = document.getElementById('qr-reader-public');
+                        alert('Element: ' + (el ? 'ada' : 'tidak ada')); // ✅ debug
+
+                        if (!el) return;
+
+                        el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                        const video = document.getElementById('qr-video');
+                        alert('Video: ' + (video ? 'ada' : 'tidak ada')); // ✅ debug
+
+                        video.srcObject = stream;
+                        await video.play();
+                        alert('Video playing!'); // ✅ debug
+
+                        this.scanFrame(video, el.querySelector('canvas'), el.querySelector('canvas').getContext('2d'));
+
                     } catch (err) {
-                        this.error = 'Izin kamera ditolak. Buka Settings HP → Chrome → Izin → Kamera → Izinkan';
+                        alert('Error: ' + err.name + ' - ' + err.message); // ✅ debug
+                        this.error = 'Izin kamera ditolak.';
                     }
                 },
 
