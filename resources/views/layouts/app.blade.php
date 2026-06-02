@@ -209,6 +209,15 @@
                     <div style="padding:16px;">
                         <div x-show="!unit">
                             <div id="qr-reader-public" style="width:100%; border-radius:12px; overflow:hidden;"></div>
+                            {{-- ✅ Tombol aktifkan kamera --}}
+                            <div x-show="!permissionGranted && error"
+                                style="text-align:center; padding:16px;">
+                                <p style="font-size:13px; color:#dc2626; margin-bottom:12px;" x-text="error"></p>
+                                <button @click="requestCamera()"
+                                    style="padding:12px 24px; background:#2563eb; color:white; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; width:100%;">
+                                    📷 Aktifkan Kamera
+                                </button>
+                            </div>
                             <div x-show="error"
                                 style="margin-top:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px; text-align:center;">
                                 <p style="font-size:24px; margin-bottom:8px;">📷</p>
@@ -269,13 +278,43 @@
                 error: '',
                 scanner: null,
                 stream: null,
-
+                permissionGranted: false,
                 async openModal() {
                     this.open = true;
                     this.unit = null;
                     this.error = '';
+                    this.permissionGranted = false;
 
-                    this.$nextTick(() => setTimeout(() => this.startScanner(), 500));
+                    // ✅ Langsung minta izin kamera saat modal terbuka
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: true
+                        });
+                        stream.getTracks().forEach(track => track.stop());
+                        this.permissionGranted = true;
+                        this.$nextTick(() => setTimeout(() => this.startScanner(), 300));
+                    } catch (err) {
+                        this.error = 'Ketuk tombol di bawah untuk mengaktifkan kamera';
+                        this.permissionGranted = false;
+                    }
+                },
+
+                async requestCamera() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: {
+                                    ideal: 'environment'
+                                }
+                            }
+                        });
+                        stream.getTracks().forEach(track => track.stop());
+                        this.error = '';
+                        this.permissionGranted = true;
+                        setTimeout(() => this.startScanner(), 300);
+                    } catch (err) {
+                        this.error = 'Izin kamera ditolak. Buka Settings HP → Chrome → Izin → Kamera → Izinkan';
+                    }
                 },
 
                 closeModal() {
