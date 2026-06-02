@@ -98,10 +98,23 @@
             <div class="flex items-center">
 
                 <!-- Desktop Button -->
-                <a href="{{ url('/permintaan') }}"
-                    class="hidden lg:inline-block bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-lg">
-                    Lapor
-                </a>
+                <div class="hidden lg:flex items-center gap-3">
+                    {{-- ✅ Tombol Scan QR Desktop --}}
+                    <button onclick="document.dispatchEvent(new CustomEvent('open-qr-scanner-public'))"
+                        class="text-slate-700 hover:text-blue-600 transition" title="Scan QR Unit">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                    </button>
+
+                    <a href="{{ url('/permintaan') }}"
+                        class="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition shadow-lg">
+                        Lapor
+                    </a>
+                </div>
+
 
                 <!-- Hamburger (Mobile Only) -->
                 <button @click="open = !open" class="lg:hidden ml-4 text-slate-700 focus:outline-none">
@@ -123,24 +136,21 @@
             </div>
         </div>
 
-        <!-- Mobile Dropdown -->
+        {{-- Mobile Dropdown --}}
         <div x-show="open" x-transition class="lg:hidden bg-white border-t border-slate-200 px-6 pb-6 space-y-4">
 
             <a href="{{ url('/') }}"
-                class="block text-sm font-medium
-            {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                class="block text-sm font-medium {{ request()->is('/') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
                 Dashboard
             </a>
 
             <a href="{{ url('/permintaan') }}"
-                class="block text-sm font-medium
-            {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                class="block text-sm font-medium {{ request()->is('permintaan') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
                 Form Perbaikan
             </a>
 
             <a href="{{ url('/antrian') }}"
-                class="block text-sm font-medium
-            {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
+                class="block text-sm font-medium {{ request()->is('antrian') ? 'text-blue-600 font-semibold' : 'text-slate-600' }}">
                 Antrian
             </a>
 
@@ -148,6 +158,12 @@
                 class="block text-center bg-slate-900 text-white py-3 rounded-lg font-semibold hover:bg-slate-800 transition shadow">
                 Lapor Kerusakan
             </a>
+
+            {{-- ✅ Tombol Scan QR Mobile --}}
+            <button onclick="document.dispatchEvent(new CustomEvent('open-qr-scanner-public'))"
+                class="w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow">
+                📷 Scan QR
+            </button>
 
         </div>
 
@@ -168,6 +184,234 @@
     </footer>
 
     @stack('scripts')
+    {{-- ✅ QR Scanner Modal --}}
+    <div x-data="qrScannerPublic()" @open-qr-scanner-public.document="openModal()">
+
+        <div x-show="open" x-transition.opacity
+            style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);"
+            @click.self="closeModal()">
+
+            <div x-show="open" x-transition
+                style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:calc(100% - 32px); max-width:28rem; z-index:10000;">
+
+                <div
+                    style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.3);">
+
+                    <div
+                        style="display:flex; align-items:center; justify-content:space-between; padding:16px; border-bottom:1px solid #e5e7eb;">
+                        <h2 style="font-weight:bold; color:#111827; font-size:15px;">📷 Scan QR Unit</h2>
+                        <button @click="closeModal()"
+                            style="width:32px; height:32px; border:none; background:#f3f4f6; border-radius:50%; cursor:pointer; font-size:14px;">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div style="padding:16px;">
+                        <div x-show="!unit">
+                            <div id="qr-reader-public" style="width:100%; border-radius:12px; overflow:hidden;"></div>
+                            {{-- ✅ Tombol aktifkan kamera --}}
+                            <div x-show="!permissionGranted && error"
+                                style="text-align:center; padding:16px;">
+                                <p style="font-size:13px; color:#dc2626; margin-bottom:12px;" x-text="error"></p>
+                                <button @click="requestCamera()"
+                                    style="padding:12px 24px; background:#2563eb; color:white; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; width:100%;">
+                                    📷 Aktifkan Kamera
+                                </button>
+                            </div>
+                            <div x-show="error"
+                                style="margin-top:12px; background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px; text-align:center;">
+                                <p style="font-size:24px; margin-bottom:8px;">📷</p>
+                                <p style="font-size:13px; font-weight:600; color:#dc2626;" x-text="error"></p>
+                                <p style="font-size:11px; color:#ef4444; margin-top:4px;">Buka pengaturan browser →
+                                    izinkan akses kamera</p>
+                                <button @click="error = ''; startScanner()"
+                                    style="margin-top:12px; padding:8px 16px; background:#dc2626; color:white; border:none; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                                    🔄 Coba Lagi
+                                </button>
+                            </div>
+                        </div>
+
+                        <div x-show="unit" style="display:none;">
+                            <div style="background:#f9fafb; border-radius:12px; padding:16px; margin-bottom:12px;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <div>
+                                        <p style="font-weight:bold; color:#111827;" x-text="unit?.code"></p>
+                                        <p style="font-size:13px; color:#6b7280;"
+                                            x-text="unit?.category + ' - ' + unit?.name"></p>
+                                        <p style="font-size:11px; color:#9ca3af;" x-text="unit?.location"></p>
+                                    </div>
+                                    <span
+                                        style="padding:4px 10px; border-radius:999px; font-size:11px; font-weight:bold; white-space:nowrap;"
+                                        :style="unit?.status === 'good' ? 'background:#dcfce7;color:#166534' : (unit
+                                            ?.status === 'broken' ? 'background:#ffedd5;color:#9a3412' :
+                                            'background:#fee2e2;color:#991b1b')"
+                                        x-text="unit?.status === 'good' ? '✅ Baik' : (unit?.status === 'broken' ? '🔧 Rusak' : '❌ Permanen')">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:8px;">
+                                <a :href="'/unit/' + unit?.code"
+                                    style="flex:1; background:#1e293b; color:white; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600; text-align:center; text-decoration:none;">
+                                    🔗 Lihat Detail & Lapor
+                                </a>
+                                <button @click="unit = null; startScanner()"
+                                    style="flex:1; background:#e5e7eb; color:#374151; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600; border:none; cursor:pointer;">
+                                    📷 Scan Lagi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script> -->
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        function qrScannerPublic() {
+            return {
+                open: false,
+                unit: null,
+                error: '',
+                scanner: null,
+                stream: null,
+                permissionGranted: false,
+                async openModal() {
+                    this.open = true;
+                    this.unit = null;
+                    this.error = '';
+                    this.permissionGranted = false;
+
+                    // ✅ Langsung minta izin kamera saat modal terbuka
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: true
+                        });
+                        stream.getTracks().forEach(track => track.stop());
+                        this.permissionGranted = true;
+                        this.$nextTick(() => setTimeout(() => this.startScanner(), 300));
+                    } catch (err) {
+                        this.error = 'Ketuk tombol di bawah untuk mengaktifkan kamera';
+                        this.permissionGranted = false;
+                    }
+                },
+
+                async requestCamera() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: {
+                                    ideal: 'environment'
+                                }
+                            }
+                        });
+                        stream.getTracks().forEach(track => track.stop());
+                        this.error = '';
+                        this.permissionGranted = true;
+                        setTimeout(() => this.startScanner(), 300);
+                    } catch (err) {
+                        this.error = 'Izin kamera ditolak. Buka Settings HP → Chrome → Izin → Kamera → Izinkan';
+                    }
+                },
+
+                closeModal() {
+                    this.open = false;
+                    this.unit = null;
+                    this.stopScanner();
+                },
+
+                startScanner() {
+                    const el = document.getElementById('qr-reader-public');
+                    if (!el) return;
+
+                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                    const video = document.getElementById('qr-video');
+                    const canvas = document.getElementById('qr-canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // ✅ Langsung getUserMedia - browser akan popup minta izin
+                    navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: {
+                                ideal: 'environment'
+                            }, // ✅ ideal bukan exact
+                            width: {
+                                ideal: 1280
+                            },
+                            height: {
+                                ideal: 720
+                            }
+                        }
+                    }).then(stream => {
+                        this.stream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                        this.scanFrame(video, canvas, ctx);
+                    }).catch(err => {
+                        if (err.name === 'NotAllowedError') {
+                            this.error = 'Izin kamera ditolak. Ketuk ikon kunci di address bar → izinkan kamera.';
+                        } else if (err.name === 'NotFoundError') {
+                            this.error = 'Kamera tidak ditemukan.';
+                        } else {
+                            this.error = 'Error kamera: ' + err.message;
+                        }
+                    });
+                },
+                scanFrame(video, canvas, ctx) {
+                    if (!this.open || this.unit) return;
+
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert',
+                        });
+
+                        if (code) {
+                            this.stopScanner();
+                            this.fetchUnit(code.data);
+                            return;
+                        }
+                    }
+
+                    // ✅ Scan terus setiap 100ms
+                    setTimeout(() => this.scanFrame(video, canvas, ctx), 100);
+                },
+
+                stopScanner() {
+                    if (this.stream) {
+                        this.stream.getTracks().forEach(track => track.stop());
+                        this.stream = null;
+                    }
+                },
+
+                async fetchUnit(text) {
+                    const code = text.includes('/unit/') ? text.split('/unit/').pop() : text;
+                    try {
+                        const res = await fetch('/api/unit/' + encodeURIComponent(code));
+                        const data = await res.json();
+                        if (data.error) {
+                            this.error = data.error;
+                            this.startScanner();
+                        } else {
+                            this.unit = data;
+                            this.error = '';
+                        }
+                    } catch (e) {
+                        this.error = 'Error memuat data unit';
+                        this.startScanner();
+                    }
+                }
+            }
+        }
+    </script>
     <script type="module">
         import {
             initializeApp

@@ -6,7 +6,7 @@ use App\Http\Controllers\QueueController;
 use App\Models\FcmToken;
 use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
-use App\Http\Controllers\ProcurementPrintController;
+use App\Http\Controllers\UnitController;
 
 Route::get('/', function () {
     return view('index');
@@ -83,7 +83,44 @@ Route::get('/admin/infrastructure-report/{locationId}', [InfrastructureReportCon
     ->middleware('auth')
     ->name('infrastructure.report.location');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/procurement/{record}/print', [ProcurementPrintController::class, 'printSingle'])->name('procurement.print');
-    Route::get('/procurement/bulk-print/{ids}', [ProcurementPrintController::class, 'printBulk'])->name('procurement.print_bulk');
+
+Route::get('/unit/{code}', [UnitController::class, 'show'])->name('unit.show');
+Route::post('/unit/{code}/report', [UnitController::class, 'report'])->name('unit.report')
+    ->middleware('throttle:5,1');
+
+Route::get('/api/unit/{code}', function (string $code) {
+    $unit = \App\Models\InfrastructureUnit::with([
+        'infrastructure.location',
+        'infrastructure.category',
+        'logs' => fn($q) => $q->latest()->limit(5),
+        'logs.request',
+    ])->where('code', $code)->first();
+
+    if (!$unit) {
+        return response()->json(['error' => 'Unit tidak ditemukan']);
+    }
+
+    return response()->json([
+        'id'       => $unit->id,
+        'code'     => $unit->code,
+        'status'   => $unit->status,
+        'note'     => $unit->note,
+        'location' => $unit->infrastructure->location->name,
+        'category' => $unit->infrastructure->category->name,
+        'name'     => $unit->infrastructure->name,
+        'logs'     => $unit->logs->map(fn($log) => [
+            'type'           => $log->type,
+            'note'           => $log->note,
+            'requester_name' => $log->request?->requester_name ?? '-',
+            'created_at'     => $log->created_at->translatedFormat('d M Y, H:i'),
+        ]),
+    ]);
 });
+
+Route::get('/admin/unit/{id}/qr-pdf', [UnitController::class, 'printQr'])
+    ->middleware('auth')
+    ->name('unit.qr.pdf');
+
+Route::get('/admin/infrastructure/{id}/qr-pdf-all', [UnitController::class, 'printAllQr'])
+    ->middleware('auth')
+    ->name('unit.qr.all.pdf');
