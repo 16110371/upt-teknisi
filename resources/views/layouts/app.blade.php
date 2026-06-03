@@ -279,52 +279,19 @@
                 scanner: null,
                 stream: null,
                 permissionGranted: false,
+
                 openModal() {
                     this.open = true;
                     this.unit = null;
                     this.error = '';
                     this.permissionGranted = false;
 
-                    // ✅ Langsung start scanner tanpa async/await
-                    // Browser akan popup minta izin saat getUserMedia dipanggil
-                    setTimeout(() => this.startScanner(), 300);
+                    // Naikkan ke 500ms agar DOM Modal di Android benar-benar selesai merender element #qr-reader-public
+                    setTimeout(() => this.startScanner(), 500);
                 },
 
                 requestCamera() {
-                    navigator.mediaDevices.getUserMedia({
-                            video: {
-                                facingMode: {
-                                    ideal: 'environment'
-                                }
-                            }
-                        })
-                        .then((stream) => {
-                            this.stream = stream;
-                            this.error = '';
-                            this.permissionGranted = true;
-
-                            const el = document.getElementById('qr-reader-public');
-                            if (!el) return;
-
-                            // Perbaikan: Tambahkan atribut autoplay, loop, muted, dan playsinline secara eksplisit
-                            el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
-
-                            const video = document.getElementById('qr-video');
-                            const canvas = document.getElementById('qr-canvas');
-                            const ctx = canvas.getContext('2d');
-
-                            video.srcObject = stream;
-
-                            // Perbaikan: Gunakan catch pada video.play() untuk menghindari unhandled play request di Android
-                            video.play().then(() => {
-                                this.scanFrame(video, canvas, ctx);
-                            }).catch(err => {
-                                console.error("Gagal memutar video otomatis:", err);
-                            });
-                        })
-                        .catch((err) => {
-                            this.error = 'Izin kamera ditolak. Buka Settings → izinkan kamera untuk situs ini.';
-                        });
+                    this.startScanner();
                 },
 
                 closeModal() {
@@ -337,45 +304,62 @@
                     const el = document.getElementById('qr-reader-public');
                     if (!el) return;
 
-                    // Perbaikan: Tambahkan atribut lengkap pada tag video
+                    // Tambahkan atribut autoplay, loop, muted, playsinline secara eksplisit agar Chrome Android mau memutar stream
                     el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
 
                     const video = document.getElementById('qr-video');
                     const canvas = document.getElementById('qr-canvas');
                     const ctx = canvas.getContext('2d');
 
-                    navigator.mediaDevices.getUserMedia({
+                    const constraints = {
                         video: {
                             facingMode: {
                                 ideal: 'environment'
                             },
                             width: {
-                                ideal: 1280
-                            },
+                                ideal: 640
+                            }, // Diturunkan sedikit dari 1280 agar beban render kamera Android lebih ringan saat inisiasi
                             height: {
-                                ideal: 720
+                                ideal: 480
                             }
                         }
-                    }).then(stream => {
-                        this.stream = stream;
-                        video.srcObject = stream;
+                    };
 
-                        // Perbaikan penanganan play() di Android
-                        video.play().then(() => {
-                            this.scanFrame(video, canvas, ctx);
-                        }).catch(err => {
-                            console.error("Gagal memutar video otomatis:", err);
+                    navigator.mediaDevices.getUserMedia(constraints)
+                        .then(stream => {
+                            this.stream = stream;
+                            this.error = '';
+                            this.permissionGranted = true;
+
+                            if ('srcObject' in video) {
+                                video.srcObject = stream;
+                            } else {
+                                video.src = window.URL.createObjectURL(stream);
+                            }
+
+                            // Android membutuhkan penanganan promise pada fungsi .play()
+                            video.play()
+                                .then(() => {
+                                    this.scanFrame(video, canvas, ctx);
+                                })
+                                .catch(err => {
+                                    console.error("Video play ditangguhkan oleh Chrome:", err);
+                                    // Jika autoplay gagal, jalankan scanner lewat trigger klik/interaksi
+                                    this.scanFrame(video, canvas, ctx);
+                                });
+                        })
+                        .catch(err => {
+                            console.error("Gagal mendeteksi kamera:", err);
+                            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                                this.error = 'Izin kamera ditolak browser atau diblokir oleh sistem pengaturan aplikasi.';
+                            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                                this.error = 'Kamera belakang tidak ditemukan atau sedang digunakan aplikasi lain.';
+                            } else {
+                                this.error = 'Gagal mengakses kamera: ' + err.message;
+                            }
                         });
-                    }).catch(err => {
-                        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                            this.error = 'Izin kamera ditolak. Ketuk ikon kunci/opsi di address bar → izinkan kamera.';
-                        } else if (err.name === 'NotFoundError') {
-                            this.error = 'Kamera tidak ditemukan.';
-                        } else {
-                            this.error = 'Error kamera: ' + err.message;
-                        }
-                    });
                 },
+
                 scanFrame(video, canvas, ctx) {
                     if (!this.open || this.unit) return;
 
@@ -395,9 +379,8 @@
                             return;
                         }
                     }
-
-                    // ✅ Scan terus setiap 100ms
-                    setTimeout(() => this.scanFrame(video, canvas, ctx), 100);
+                    // Minta frame berikutnya menggunakan requestAnimationFrame (lebih ramah performa Android dibanding setTimeout)
+                    requestAnimationFrame(() => this.scanFrame(video, canvas, ctx));
                 },
 
                 stopScanner() {
