@@ -213,7 +213,7 @@
                             <div x-show="!permissionGranted && error"
                                 style="text-align:center; padding:16px;">
                                 <p style="font-size:13px; color:#dc2626; margin-bottom:12px;" x-text="error"></p>
-                                <button @click="requestCamera()"
+                                <button onclick="bukaKameraAndroid()"
                                     style="padding:12px 24px; background:#2563eb; color:white; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; width:100%;">
                                     📷 Aktifkan Kamera
                                 </button>
@@ -256,7 +256,7 @@
                                     style="flex:1; background:#1e293b; color:white; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600; text-align:center; text-decoration:none;">
                                     🔗 Lihat Detail & Lapor
                                 </a>
-                                <button @click="unit = null; startScanner()"
+                                <button onclick="bukaKameraAndroid()"
                                     style="flex:1; background:#e5e7eb; color:#374151; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:600; border:none; cursor:pointer;">
                                     📷 Scan Lagi
                                 </button>
@@ -271,10 +271,40 @@
     <!-- <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script> -->
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
-        // Deklarasikan variabel global di luar fungsi Alpine
-        window.localStream = null;
-        window.isScanning = false;
+        // 1. Variabel Global agar bisa diakses di luar dan di dalam Alpine
+        window.streamKamera Global = null;
 
+        // 2. Fungsi Utama yang ditempel di onclick tombol (Dikenali Chrome sebagai User Gesture Murni)
+        function bukaKameraAndroid() {
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: {
+                            ideal: 'environment'
+                        },
+                        width: {
+                            ideal: 640
+                        },
+                        height: {
+                            ideal: 480
+                        }
+                    }
+                })
+                .then(stream => {
+                    window.streamKameraGlobal = stream;
+
+                    // Setelah sukses dapat izin & stream, picu Alpine untuk buka modal
+                    document.dispatchEvent(new CustomEvent('buka-modal-scanner-sukses'));
+                })
+                .catch(err => {
+                    console.error("Error murni Chrome:", err);
+                    // Tetap buka modal untuk menampilkan pesan error bantuan
+                    document.dispatchEvent(new CustomEvent('buka-modal-scanner-gagal', {
+                        detail: err.name
+                    }));
+                });
+        }
+
+        // 3. Komponen Alpine.js
         function qrScannerPublic() {
             return {
                 open: false,
@@ -282,79 +312,64 @@
                 error: '',
                 permissionGranted: false,
 
-                openModal() {
-                    this.unit = null;
-                    this.error = '';
-                    this.permissionGranted = false;
-                    window.isScanning = true;
+                init() {
+                    // Dengarkan event global dari fungsi murni di atas
+                    document.addEventListener('buka-modal-scanner-sukses', () => {
+                        this.open = true;
+                        this.unit = null;
+                        this.error = '';
+                        this.permissionGranted = true;
 
-                    // Pemicu langsung tanpa delay/setTimeout agar dideteksi sebagai User Gesture murni
-                    navigator.mediaDevices.getUserMedia({
-                            video: {
-                                facingMode: {
-                                    ideal: 'environment'
-                                },
-                                width: {
-                                    ideal: 640
-                                },
-                                height: {
-                                    ideal: 480
-                                }
-                            }
+                        // Tunggu DOM modal siap, lalu pasang videonya
+                        this.$nextTick(() => {
+                            this.pasangStreamKeVideo();
+                        });
+                    });
+
+                    document.addEventListener('buka-modal-scanner-gagal', (e) => {
+                        this.open = true;
+                        this.permissionGranted = false;
+                        if (e.detail === 'NotAllowedError' || e.detail === 'PermissionDeniedError') {
+                            this.error = 'Izin kamera ditolak browser. Coba buka lewat "Tab Samaran / Incognito" jika pop-up masih terkunci.';
+                        } else {
+                            this.error = 'Gagal memicu kamera: ' + e.detail;
+                        }
+                    });
+                },
+
+                pasangStreamKeVideo() {
+                    const el = document.getElementById('qr-reader-public');
+                    if (!el || !window.streamKameraGlobal) return;
+
+                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                    const video = document.getElementById('qr-video');
+                    const canvas = document.getElementById('qr-canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    video.srcObject = window.streamKameraGlobal;
+                    video.play()
+                        .then(() => {
+                            this.scanFrame(video, canvas, ctx);
                         })
-                        .then(stream => {
-                            this.open = true;
-                            this.permissionGranted = true;
-                            window.localStream = stream;
-
-                            this.$nextTick(() => {
-                                const el = document.getElementById('qr-reader-public');
-                                if (!el) return;
-
-                                el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
-
-                                const video = document.getElementById('qr-video');
-                                const canvas = document.getElementById('qr-canvas');
-                                const ctx = canvas.getContext('2d');
-
-                                video.srcObject = stream;
-                                video.play()
-                                    .then(() => {
-                                        this.scanFrame(video, canvas, ctx);
-                                    })
-                                    .catch(err => {
-                                        // Cadangan jika autoplay tertahan sistem Android
-                                        this.scanFrame(video, canvas, ctx);
-                                    });
-                            });
-                        })
-                        .catch(err => {
-                            this.open = true;
-                            console.error("Error akses kamera Chrome:", err);
-                            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                                this.error = 'Izin kamera ditolak browser. Silakan bersihkan histori/cache browser Chrome Android Anda untuk memicu ulang perizinan.';
-                            } else {
-                                this.error = 'Kamera gagal aktif: ' + err.message;
-                            }
+                        .catch(() => {
+                            this.scanFrame(video, canvas, ctx);
                         });
                 },
 
                 requestCamera() {
-                    this.openModal();
+                    // Tombol "Coba Lagi" di dalam modal
+                    bukaKameraAndroid();
                 },
 
                 closeModal() {
                     this.open = false;
                     this.unit = null;
-                    window.isScanning = false;
-                    if (window.localStream) {
-                        window.localStream.getTracks().forEach(track => track.stop());
-                        window.localStream = null;
-                    }
+                    this.stopScanner();
                 },
 
                 scanFrame(video, canvas, ctx) {
-                    if (!this.open || this.unit || !window.isScanning) return;
+                    if (!this.open || this.unit) return;
 
                     if (video.readyState === video.HAVE_ENOUGH_DATA) {
                         canvas.width = video.videoWidth;
@@ -367,16 +382,19 @@
                         });
 
                         if (code) {
-                            window.isScanning = false;
-                            if (window.localStream) {
-                                window.localStream.getTracks().forEach(track => track.stop());
-                                window.localStream = null;
-                            }
+                            this.stopScanner();
                             this.fetchUnit(code.data);
                             return;
                         }
                     }
                     requestAnimationFrame(() => this.scanFrame(video, canvas, ctx));
+                },
+
+                stopScanner() {
+                    if (window.streamKameraGlobal) {
+                        window.streamKameraGlobal.getTracks().forEach(track => track.stop());
+                        window.streamKameraGlobal = null;
+                    }
                 },
 
                 async fetchUnit(text) {
@@ -386,7 +404,7 @@
                         const data = await res.json();
                         if (data.error) {
                             this.error = data.error;
-                            this.openModal(); // Buka kembali jika api merespon error
+                            bukaKameraAndroid(); // Buka kembali jika gagal
                         } else {
                             this.unit = data;
                             this.error = '';
