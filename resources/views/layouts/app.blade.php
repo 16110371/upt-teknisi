@@ -279,62 +279,47 @@
                 scanner: null,
                 stream: null,
                 permissionGranted: false,
-                async openModal() {
+                openModal() {
                     this.open = true;
                     this.unit = null;
                     this.error = '';
                     this.permissionGranted = false;
 
-                    // ✅ Langsung minta izin kamera saat modal terbuka
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({
-                            video: true
-                        });
-                        stream.getTracks().forEach(track => track.stop());
-                        this.permissionGranted = true;
-                        this.$nextTick(() => setTimeout(() => this.startScanner(), 300));
-                    } catch (err) {
-                        this.error = 'Ketuk tombol di bawah untuk mengaktifkan kamera';
-                        this.permissionGranted = false;
-                    }
+                    // ✅ Langsung start scanner tanpa async/await
+                    // Browser akan popup minta izin saat getUserMedia dipanggil
+                    setTimeout(() => this.startScanner(), 300);
                 },
 
-                async requestCamera() {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({
+                requestCamera() {
+                    // ✅ Tidak pakai async/await - langsung getUserMedia
+                    navigator.mediaDevices.getUserMedia({
                             video: {
                                 facingMode: {
                                     ideal: 'environment'
                                 }
                             }
+                        })
+                        .then((stream) => {
+                            this.stream = stream;
+                            this.error = '';
+                            this.permissionGranted = true;
+
+                            const el = document.getElementById('qr-reader-public');
+                            if (!el) return;
+
+                            el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                            const video = document.getElementById('qr-video');
+                            const canvas = document.getElementById('qr-canvas');
+                            const ctx = canvas.getContext('2d');
+
+                            video.srcObject = stream;
+                            video.play();
+                            this.scanFrame(video, canvas, ctx);
+                        })
+                        .catch((err) => {
+                            this.error = 'Izin kamera ditolak. Buka Settings → izinkan kamera untuk situs ini.';
                         });
-
-                        alert('Stream berhasil: ' + stream.getTracks().length + ' track'); // ✅ debug
-
-                        this.stream = stream;
-                        this.error = '';
-                        this.permissionGranted = true;
-
-                        const el = document.getElementById('qr-reader-public');
-                        alert('Element: ' + (el ? 'ada' : 'tidak ada')); // ✅ debug
-
-                        if (!el) return;
-
-                        el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
-
-                        const video = document.getElementById('qr-video');
-                        alert('Video: ' + (video ? 'ada' : 'tidak ada')); // ✅ debug
-
-                        video.srcObject = stream;
-                        await video.play();
-                        alert('Video playing!'); // ✅ debug
-
-                        this.scanFrame(video, el.querySelector('canvas'), el.querySelector('canvas').getContext('2d'));
-
-                    } catch (err) {
-                        alert('Error: ' + err.name + ' - ' + err.message); // ✅ debug
-                        this.error = 'Izin kamera ditolak.';
-                    }
                 },
 
                 closeModal() {
