@@ -271,71 +271,71 @@
     <!-- <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script> -->
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        // Deklarasikan variabel global di luar fungsi Alpine
+        window.localStream = null;
+        window.isScanning = false;
+
         function qrScannerPublic() {
             return {
                 open: false,
                 unit: null,
                 error: '',
-                stream: null,
                 permissionGranted: false,
 
                 openModal() {
                     this.unit = null;
                     this.error = '';
                     this.permissionGranted = false;
+                    window.isScanning = true;
 
-                    // LANGKAH 1: Langsung minta izin kamera saat tombol diklik (Solusi utama Chrome Android)
+                    // Pemicu langsung tanpa delay/setTimeout agar dideteksi sebagai User Gesture murni
                     navigator.mediaDevices.getUserMedia({
                             video: {
                                 facingMode: {
                                     ideal: 'environment'
+                                },
+                                width: {
+                                    ideal: 640
+                                },
+                                height: {
+                                    ideal: 480
                                 }
                             }
                         })
                         .then(stream => {
-                            // Izin diberikan! Baru buka modal dan pasang stream-nya
                             this.open = true;
-                            this.stream = stream;
                             this.permissionGranted = true;
+                            window.localStream = stream;
 
-                            // Tunggu Alpine selesai memunculkan modal ke layar (DOM ready)
                             this.$nextTick(() => {
-                                this.initVideoElement(stream);
+                                const el = document.getElementById('qr-reader-public');
+                                if (!el) return;
+
+                                el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+
+                                const video = document.getElementById('qr-video');
+                                const canvas = document.getElementById('qr-canvas');
+                                const ctx = canvas.getContext('2d');
+
+                                video.srcObject = stream;
+                                video.play()
+                                    .then(() => {
+                                        this.scanFrame(video, canvas, ctx);
+                                    })
+                                    .catch(err => {
+                                        // Cadangan jika autoplay tertahan sistem Android
+                                        this.scanFrame(video, canvas, ctx);
+                                    });
                             });
                         })
                         .catch(err => {
-                            // Jika gagal/ditolak browser
                             this.open = true;
-                            console.error("Akses kamera gagal:", err);
+                            console.error("Error akses kamera Chrome:", err);
                             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                                this.error = 'Izin kamera ditolak browser. Ketuk gembok di address bar web lalu izinkan Kamera.';
+                                this.error = 'Izin kamera ditolak browser. Silakan bersihkan histori/cache browser Chrome Android Anda untuk memicu ulang perizinan.';
                             } else {
-                                this.error = 'Gagal mengakses kamera: ' + err.message;
+                                this.error = 'Kamera gagal aktif: ' + err.message;
                             }
-                        });
-                },
-
-                initVideoElement(stream) {
-                    const el = document.getElementById('qr-reader-public');
-                    if (!el) return;
-
-                    // Inject elemen video ke dalam DOM modal
-                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
-
-                    const video = document.getElementById('qr-video');
-                    const canvas = document.getElementById('qr-canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    video.srcObject = stream;
-
-                    // Jalankan video
-                    video.play()
-                        .then(() => {
-                            this.scanFrame(video, canvas, ctx);
-                        })
-                        .catch(err => {
-                            console.warn("Autoplay dicegah browser, mencoba scan langsung.", err);
-                            this.scanFrame(video, canvas, ctx);
                         });
                 },
 
@@ -346,11 +346,15 @@
                 closeModal() {
                     this.open = false;
                     this.unit = null;
-                    this.stopScanner();
+                    window.isScanning = false;
+                    if (window.localStream) {
+                        window.localStream.getTracks().forEach(track => track.stop());
+                        window.localStream = null;
+                    }
                 },
 
                 scanFrame(video, canvas, ctx) {
-                    if (!this.open || this.unit) return;
+                    if (!this.open || this.unit || !window.isScanning) return;
 
                     if (video.readyState === video.HAVE_ENOUGH_DATA) {
                         canvas.width = video.videoWidth;
@@ -363,20 +367,16 @@
                         });
 
                         if (code) {
-                            this.stopScanner();
+                            window.isScanning = false;
+                            if (window.localStream) {
+                                window.localStream.getTracks().forEach(track => track.stop());
+                                window.localStream = null;
+                            }
                             this.fetchUnit(code.data);
                             return;
                         }
                     }
-                    // Gunakan requestAnimationFrame agar rendering di HP Android mulus
                     requestAnimationFrame(() => this.scanFrame(video, canvas, ctx));
-                },
-
-                stopScanner() {
-                    if (this.stream) {
-                        this.stream.getTracks().forEach(track => track.stop());
-                        this.stream = null;
-                    }
                 },
 
                 async fetchUnit(text) {
@@ -386,18 +386,7 @@
                         const data = await res.json();
                         if (data.error) {
                             this.error = data.error;
-                            // Jika error dari API, buka kembali kameranya
-                            navigator.mediaDevices.getUserMedia({
-                                    video: {
-                                        facingMode: {
-                                            ideal: 'environment'
-                                        }
-                                    }
-                                })
-                                .then(stream => {
-                                    this.stream = stream;
-                                    this.initVideoElement(stream);
-                                });
+                            this.openModal(); // Buka kembali jika api merespon error
                         } else {
                             this.unit = data;
                             this.error = '';
