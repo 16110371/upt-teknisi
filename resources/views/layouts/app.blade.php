@@ -291,7 +291,6 @@
                 },
 
                 requestCamera() {
-                    // ✅ Tidak pakai async/await - langsung getUserMedia
                     navigator.mediaDevices.getUserMedia({
                             video: {
                                 facingMode: {
@@ -307,15 +306,21 @@
                             const el = document.getElementById('qr-reader-public');
                             if (!el) return;
 
-                            el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+                            // Perbaikan: Tambahkan atribut autoplay, loop, muted, dan playsinline secara eksplisit
+                            el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
 
                             const video = document.getElementById('qr-video');
                             const canvas = document.getElementById('qr-canvas');
                             const ctx = canvas.getContext('2d');
 
                             video.srcObject = stream;
-                            video.play();
-                            this.scanFrame(video, canvas, ctx);
+
+                            // Perbaikan: Gunakan catch pada video.play() untuk menghindari unhandled play request di Android
+                            video.play().then(() => {
+                                this.scanFrame(video, canvas, ctx);
+                            }).catch(err => {
+                                console.error("Gagal memutar video otomatis:", err);
+                            });
                         })
                         .catch((err) => {
                             this.error = 'Izin kamera ditolak. Buka Settings → izinkan kamera untuk situs ini.';
@@ -332,18 +337,18 @@
                     const el = document.getElementById('qr-reader-public');
                     if (!el) return;
 
-                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" playsinline autoplay muted></video><canvas id="qr-canvas" style="display:none;"></canvas>';
+                    // Perbaikan: Tambahkan atribut lengkap pada tag video
+                    el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
 
                     const video = document.getElementById('qr-video');
                     const canvas = document.getElementById('qr-canvas');
                     const ctx = canvas.getContext('2d');
 
-                    // ✅ Langsung getUserMedia - browser akan popup minta izin
                     navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: {
                                 ideal: 'environment'
-                            }, // ✅ ideal bukan exact
+                            },
                             width: {
                                 ideal: 1280
                             },
@@ -354,11 +359,16 @@
                     }).then(stream => {
                         this.stream = stream;
                         video.srcObject = stream;
-                        video.play();
-                        this.scanFrame(video, canvas, ctx);
+
+                        // Perbaikan penanganan play() di Android
+                        video.play().then(() => {
+                            this.scanFrame(video, canvas, ctx);
+                        }).catch(err => {
+                            console.error("Gagal memutar video otomatis:", err);
+                        });
                     }).catch(err => {
-                        if (err.name === 'NotAllowedError') {
-                            this.error = 'Izin kamera ditolak. Ketuk ikon kunci di address bar → izinkan kamera.';
+                        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                            this.error = 'Izin kamera ditolak. Ketuk ikon kunci/opsi di address bar → izinkan kamera.';
                         } else if (err.name === 'NotFoundError') {
                             this.error = 'Kamera tidak ditemukan.';
                         } else {
