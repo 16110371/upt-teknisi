@@ -214,11 +214,12 @@
                     // Picu Alpine untuk buka modal
                     document.dispatchEvent(new CustomEvent('buka-modal-scanner-sukses'));
                 })
-                .catch(err => {
-                    console.error("Error murni Chrome:", err);
-                    document.dispatchEvent(new CustomEvent('buka-modal-scanner-gagal', {
-                        detail: err.name
-                    }));
+                .catch(function(err) {
+                    // Menampilkan popup berisi detail error asli dari browser
+                    alert("Nama Error: " + err.name + "\nPesan: " + err.message);
+
+                    // Log ke console untuk inspeksi lebih dalam jika terhubung ke PC
+                    console.error("Detail Error Kamera:", err);
                 });
         }
 
