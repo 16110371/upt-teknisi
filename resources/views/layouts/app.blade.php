@@ -196,30 +196,33 @@
 
         // 2. Fungsi Utama Level Window (Memicu User Gesture Murni untuk Chrome Android)
         function bukaKameraAndroid() {
+            // LAPIS 1: Coba minta kamera belakang dengan sintaks yang jauh lebih sederhana (tanpa batasan resolusi yang kaku)
             navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: {
-                            ideal: 'environment'
-                        },
-                        width: {
-                            ideal: 640
-                        },
-                        height: {
-                            ideal: 480
-                        }
+                        facingMode: "environment" // Langsung gunakan string, hindari kurung kurawal ideal/exact
                     }
                 })
                 .then(stream => {
                     window.streamKameraGlobal = stream;
-                    // Picu Alpine untuk buka modal
+                    // Jika sukses, picu Alpine untuk membuka modal
                     document.dispatchEvent(new CustomEvent('buka-modal-scanner-sukses'));
                 })
-                .catch(function(err) {
-                    // Menampilkan popup berisi detail error asli dari browser
-                    alert("Nama Error: " + err.name + "\nPesan: " + err.message);
+                .catch(err => {
+                    console.warn("Kamera belakang gagal/dicegat, mencoba metode fallback (WebRTC-style)...", err);
 
-                    // Log ke console untuk inspeksi lebih dalam jika terhubung ke PC
-                    console.error("Detail Error Kamera:", err);
+                    // LAPIS 2: JIKA LAPIS 1 GAGAL, gunakan parameter paling basic (Sama persis dengan link uji coba yang sukses di HP-mu)
+                    navigator.mediaDevices.getUserMedia({
+                            video: true
+                        })
+                        .then(stream => {
+                            window.streamKameraGlobal = stream;
+                            // Jika sukses, buka modal
+                            document.dispatchEvent(new CustomEvent('buka-modal-scanner-sukses'));
+                        })
+                        .catch(finalErr => {
+                            // Hanya memunculkan alert jika kedua lapis di atas gagal total
+                            alert("Nama Error: " + finalErr.name + "\nPesan: " + finalErr.message);
+                        });
                 });
         }
 
