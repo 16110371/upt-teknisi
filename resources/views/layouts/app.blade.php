@@ -276,88 +276,77 @@
                 open: false,
                 unit: null,
                 error: '',
-                scanner: null,
                 stream: null,
                 permissionGranted: false,
 
                 openModal() {
-                    this.open = true;
                     this.unit = null;
                     this.error = '';
                     this.permissionGranted = false;
 
-                    // Naikkan ke 500ms agar DOM Modal di Android benar-benar selesai merender element #qr-reader-public
-                    setTimeout(() => this.startScanner(), 500);
+                    // LANGKAH 1: Langsung minta izin kamera saat tombol diklik (Solusi utama Chrome Android)
+                    navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: {
+                                    ideal: 'environment'
+                                }
+                            }
+                        })
+                        .then(stream => {
+                            // Izin diberikan! Baru buka modal dan pasang stream-nya
+                            this.open = true;
+                            this.stream = stream;
+                            this.permissionGranted = true;
+
+                            // Tunggu Alpine selesai memunculkan modal ke layar (DOM ready)
+                            this.$nextTick(() => {
+                                this.initVideoElement(stream);
+                            });
+                        })
+                        .catch(err => {
+                            // Jika gagal/ditolak browser
+                            this.open = true;
+                            console.error("Akses kamera gagal:", err);
+                            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                                this.error = 'Izin kamera ditolak browser. Ketuk gembok di address bar web lalu izinkan Kamera.';
+                            } else {
+                                this.error = 'Gagal mengakses kamera: ' + err.message;
+                            }
+                        });
                 },
 
-                requestCamera() {
-                    this.startScanner();
-                },
-
-                closeModal() {
-                    this.open = false;
-                    this.unit = null;
-                    this.stopScanner();
-                },
-
-                startScanner() {
+                initVideoElement(stream) {
                     const el = document.getElementById('qr-reader-public');
                     if (!el) return;
 
-                    // Tambahkan atribut autoplay, loop, muted, playsinline secara eksplisit agar Chrome Android mau memutar stream
+                    // Inject elemen video ke dalam DOM modal
                     el.innerHTML = '<video id="qr-video" style="width:100%; border-radius:12px;" autoplay loop muted playsinline></video><canvas id="qr-canvas" style="display:none;"></canvas>';
 
                     const video = document.getElementById('qr-video');
                     const canvas = document.getElementById('qr-canvas');
                     const ctx = canvas.getContext('2d');
 
-                    const constraints = {
-                        video: {
-                            facingMode: {
-                                ideal: 'environment'
-                            },
-                            width: {
-                                ideal: 640
-                            }, // Diturunkan sedikit dari 1280 agar beban render kamera Android lebih ringan saat inisiasi
-                            height: {
-                                ideal: 480
-                            }
-                        }
-                    };
+                    video.srcObject = stream;
 
-                    navigator.mediaDevices.getUserMedia(constraints)
-                        .then(stream => {
-                            this.stream = stream;
-                            this.error = '';
-                            this.permissionGranted = true;
-
-                            if ('srcObject' in video) {
-                                video.srcObject = stream;
-                            } else {
-                                video.src = window.URL.createObjectURL(stream);
-                            }
-
-                            // Android membutuhkan penanganan promise pada fungsi .play()
-                            video.play()
-                                .then(() => {
-                                    this.scanFrame(video, canvas, ctx);
-                                })
-                                .catch(err => {
-                                    console.error("Video play ditangguhkan oleh Chrome:", err);
-                                    // Jika autoplay gagal, jalankan scanner lewat trigger klik/interaksi
-                                    this.scanFrame(video, canvas, ctx);
-                                });
+                    // Jalankan video
+                    video.play()
+                        .then(() => {
+                            this.scanFrame(video, canvas, ctx);
                         })
                         .catch(err => {
-                            console.error("Gagal mendeteksi kamera:", err);
-                            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                                this.error = 'Izin kamera ditolak browser atau diblokir oleh sistem pengaturan aplikasi.';
-                            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                                this.error = 'Kamera belakang tidak ditemukan atau sedang digunakan aplikasi lain.';
-                            } else {
-                                this.error = 'Gagal mengakses kamera: ' + err.message;
-                            }
+                            console.warn("Autoplay dicegah browser, mencoba scan langsung.", err);
+                            this.scanFrame(video, canvas, ctx);
                         });
+                },
+
+                requestCamera() {
+                    this.openModal();
+                },
+
+                closeModal() {
+                    this.open = false;
+                    this.unit = null;
+                    this.stopScanner();
                 },
 
                 scanFrame(video, canvas, ctx) {
@@ -379,7 +368,7 @@
                             return;
                         }
                     }
-                    // Minta frame berikutnya menggunakan requestAnimationFrame (lebih ramah performa Android dibanding setTimeout)
+                    // Gunakan requestAnimationFrame agar rendering di HP Android mulus
                     requestAnimationFrame(() => this.scanFrame(video, canvas, ctx));
                 },
 
@@ -397,14 +386,24 @@
                         const data = await res.json();
                         if (data.error) {
                             this.error = data.error;
-                            this.startScanner();
+                            // Jika error dari API, buka kembali kameranya
+                            navigator.mediaDevices.getUserMedia({
+                                    video: {
+                                        facingMode: {
+                                            ideal: 'environment'
+                                        }
+                                    }
+                                })
+                                .then(stream => {
+                                    this.stream = stream;
+                                    this.initVideoElement(stream);
+                                });
                         } else {
                             this.unit = data;
                             this.error = '';
                         }
                     } catch (e) {
                         this.error = 'Error memuat data unit';
-                        this.startScanner();
                     }
                 }
             }
