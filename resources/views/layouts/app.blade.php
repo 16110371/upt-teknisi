@@ -160,11 +160,9 @@
             </a>
 
             {{-- ✅ Tombol Scan QR Mobile --}}
-            <button onclick="document.dispatchEvent(new CustomEvent('open-qr-scanner-public'))"
-                class="w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow">
+            <button onclick="bukaKameraAndroid()" class="w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow">
                 📷 Scan QR
             </button>
-
         </div>
 
     </nav>
@@ -272,7 +270,7 @@
     <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         // 1. Variabel Global agar bisa diakses di luar dan di dalam Alpine
-        window.streamKamera Global = null;
+        window.streamKameraGlobal = null;
 
         // 2. Fungsi Utama yang ditempel di onclick tombol (Dikenali Chrome sebagai User Gesture Murni)
         function bukaKameraAndroid() {
