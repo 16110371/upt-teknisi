@@ -1,0 +1,7 @@
+1. memiliih item infrastruktur
+2. bug ketika membuat permintaan diadmin dan status langsung dikerjakan tidak mengurangi jumlah komputer yang good
+3. untuk qr individu belum sesuai dengan qr grup
+4. ada fitur terakhir update kapan terakhir dicek di infrastruktur
+5. mungkin buat fitur maintenance
+6. fitur pengadaan komputer itu tahun berapa
+7. untuk baris infrastruktur dibuat lebih simpel karena sekarang itu per item bukan per ruang

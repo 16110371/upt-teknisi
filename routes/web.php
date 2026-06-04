@@ -124,3 +124,13 @@ Route::get('/admin/unit/{id}/qr-pdf', [UnitController::class, 'printQr'])
 Route::get('/admin/infrastructure/{id}/qr-pdf-all', [UnitController::class, 'printAllQr'])
     ->middleware('auth')
     ->name('unit.qr.all.pdf');
+
+Route::get('/api/units', function (\Illuminate\Http\Request $request) {
+    return response()->json(
+        \App\Models\InfrastructureUnit::where('infrastructure_id', $request->infrastructure_id)
+            ->where('status', 'good')
+            ->where('is_active', true)
+            ->select('id', 'code', 'status')
+            ->get()
+    );
+});

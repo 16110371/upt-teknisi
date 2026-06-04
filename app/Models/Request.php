@@ -64,16 +64,37 @@ class Request extends Model
         return $this->belongsToMany(Technician::class, 'request_technician');
     }
 
-    // ✅ tambah relasi infrastruktur
+    // tambah relasi infrastruktur
     public function infrastructure()
     {
         return $this->belongsTo(Infrastructure::class);
     }
 
-    // ✅ tambah relasi log
+    // tambah relasi log
     public function infrastructureLogs()
     {
         return $this->hasMany(InfrastructureLog::class);
+    }
+
+    // Tambah relasi ke request_units
+    public function requestUnits()
+    {
+        return $this->hasMany(RequestUnit::class);
+    }
+
+    public function brokenUnits()
+    {
+        return $this->hasMany(RequestUnit::class)->where('type', 'rusak');
+    }
+
+    public function fixedUnits()
+    {
+        return $this->hasMany(RequestUnit::class)->where('type', 'diperbaiki');
+    }
+
+    public function permanentUnits()
+    {
+        return $this->hasMany(RequestUnit::class)->where('type', 'permanen');
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Requests\Schemas;
 
+use App\Models\Infrastructure;
+use App\Models\InfrastructureUnit;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -9,7 +11,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
-use App\Models\Infrastructure;
 
 class RequestForm
 {
@@ -18,20 +19,25 @@ class RequestForm
         return $schema
             ->components([
                 DatePicker::make('request_date')
+                    ->label('Tanggal')
                     ->required(),
+
                 TextInput::make('requester_name')
                     ->label('Nama')
                     ->required(),
+
                 Select::make('category_id')
                     ->label('Kategori')
                     ->relationship('category', 'name')
                     ->required()
                     ->live(),
+
                 Select::make('location_id')
                     ->label('Lokasi')
                     ->relationship('location', 'name')
                     ->required()
                     ->live(),
+
                 Select::make('infrastructure_id')
                     ->label('Item Infrastruktur')
                     ->nullable()
@@ -39,88 +45,156 @@ class RequestForm
                         $locationId = $get('location_id');
                         $categoryId = $get('category_id');
 
-                        if (!$locationId || !$categoryId) {
-                            return [];
-                        }
+                        if (!$locationId || !$categoryId) return [];
 
                         return Infrastructure::where('location_id', $locationId)
                             ->where('category_id', $categoryId)
                             ->pluck('name', 'id');
                     })
                     ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if (!$state) {
+                            $set('broken_unit_ids', []);
+                            $set('damaged_quantity', 1);
+                            return;
+                        }
+
+                        // ✅ Kalau hanya 1 unit, auto pilih
+                        $units = InfrastructureUnit::where('infrastructure_id', $state)
+                            ->where('status', 'good')
+                            ->where('is_active', true)
+                            ->get();
+
+                        if ($units->count() === 1) {
+                            $set('broken_unit_ids', [$units->first()->id]);
+                            $set('damaged_quantity', 1);
+                        }
+                    })
                     ->helperText('Pilih lokasi dan kategori terlebih dahulu'),
+
+                // ✅ Pilih unit yang rusak
+                Select::make('broken_unit_ids')
+                    ->label('Unit yang Rusak')
+                    ->multiple()
+                    ->options(function ($get) {
+                        $infraId = $get('infrastructure_id');
+                        if (!$infraId) return [];
+
+                        return InfrastructureUnit::where('infrastructure_id', $infraId)
+                            ->where('status', 'good')
+                            ->where('is_active', true)
+                            ->pluck('code', 'id');
+                    })
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        // ✅ Auto isi jumlah rusak
+                        $set('damaged_quantity', count($state ?? []));
+                    })
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->required(fn($get) => (bool) $get('infrastructure_id'))
+                    ->dehydrated(true),
+
                 TextInput::make('damaged_quantity')
                     ->label('Jumlah Rusak')
                     ->numeric()
-                    ->default(1)
-                    ->minValue(1)
-                    ->hidden(fn($get) => !$get('infrastructure_id')),
+                    ->default(0)
+                    ->readOnly() // ✅ otomatis dari pilih unit
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->dehydrated(true),
+
+                // ✅ Pilih unit yang diperbaiki
+                Select::make('fixed_unit_ids')
+                    ->label('Unit yang Diperbaiki')
+                    ->multiple()
+                    ->options(function ($get) {
+                        $infraId = $get('infrastructure_id');
+                        if (!$infraId) return [];
+
+                        return InfrastructureUnit::where('infrastructure_id', $infraId)
+                            ->where('status', 'broken')
+                            ->where('is_active', true)
+                            ->pluck('code', 'id');
+                    })
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('fixed_quantity', count($state ?? []));
+                    })
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->dehydrated(true),
+
                 TextInput::make('fixed_quantity')
                     ->label('Jumlah Diperbaiki')
                     ->numeric()
                     ->default(0)
-                    ->minValue(0)
+                    ->readOnly()
                     ->hidden(fn($get) => !$get('infrastructure_id'))
-                    ->dehydrated(true)
-                    ->helperText('Jumlah yang berhasil diperbaiki')
-                    ->rules([
-                        fn($get) => function ($attribute, $value, $fail) use ($get) {
-                            $status    = $get('status');
-                            $damaged   = (int) $get('damaged_quantity') ?? 1;
-                            $fixed     = (int) $value ?? 0;
-                            $permanent = (int) $get('permanent_quantity') ?? 0;
+                    ->dehydrated(true),
 
-                            if (in_array($status, ['Selesai', 'Tidak Diperbaiki'])) {
-                                if ($fixed + $permanent === 0) {
-                                    $fail('Jumlah diperbaiki dan rusak permanen harus diisi jika status Selesai/Tidak Diperbaiki.');
-                                }
-                                if ($fixed + $permanent > $damaged) {
-                                    $fail('Jumlah diperbaiki + rusak permanen tidak boleh melebihi jumlah rusak.');
-                                }
-                            }
-                        }
-                    ]),
+                // ✅ Pilih unit rusak permanen
+                Select::make('permanent_unit_ids')
+                    ->label('Unit Rusak Permanen')
+                    ->multiple()
+                    ->options(function ($get) {
+                        $infraId = $get('infrastructure_id');
+                        if (!$infraId) return [];
+
+                        return InfrastructureUnit::where('infrastructure_id', $infraId)
+                            ->where('status', 'broken')
+                            ->where('is_active', true)
+                            ->pluck('code', 'id');
+                    })
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('permanent_quantity', count($state ?? []));
+                    })
+                    ->hidden(fn($get) => !$get('infrastructure_id'))
+                    ->dehydrated(true),
+
                 TextInput::make('permanent_quantity')
                     ->label('Jumlah Rusak Permanen')
                     ->numeric()
                     ->default(0)
-                    ->minValue(0)
+                    ->readOnly()
                     ->hidden(fn($get) => !$get('infrastructure_id'))
-                    ->dehydrated(true)
-                    ->helperText('Jumlah yang tidak bisa diperbaiki')
-                    ->rules([
-                        fn($get) => function ($attribute, $value, $fail) use ($get) {
-                            $status    = $get('status');
-                            $damaged   = (int) $get('damaged_quantity') ?? 1;
-                            $fixed     = (int) $get('fixed_quantity') ?? 0;
-                            $permanent = (int) $value ?? 0;
+                    ->dehydrated(true),
 
-                            if (in_array($status, ['Selesai', 'Tidak Diperbaiki'])) {
-                                if ($fixed + $permanent > $damaged) {
-                                    $fail('Jumlah diperbaiki + rusak permanen tidak boleh melebihi jumlah rusak.');
-                                }
-                            }
-                        }
-                    ]),
                 Select::make('status')
                     ->label('Status')
                     ->options([
-                        'Pending'           => 'Pending',
-                        'Dikerjakan'        => 'Dikerjakan',
-                        'Menunggu Part'     => 'Menunggu Part',
-                        'Selesai'           => 'Selesai',
-                        'Tidak Diperbaiki'  => 'Tidak Diperbaiki',
+                        'Pending'          => 'Pending',
+                        'Dikerjakan'       => 'Dikerjakan',
+                        'Menunggu Part'    => 'Menunggu Part',
+                        'Selesai'          => 'Selesai',
+                        'Tidak Diperbaiki' => 'Tidak Diperbaiki',
                     ])
                     ->default('Pending')
                     ->required(),
+
+                Select::make('priority')
+                    ->label('Prioritas')
+                    ->options([
+                        'Rendah' => 'Rendah',
+                        'Sedang' => 'Sedang',
+                        'Tinggi' => 'Tinggi',
+                    ])
+                    ->default('Rendah')
+                    ->required(),
+
                 Select::make('technicians')
                     ->label('Teknisi')
                     ->relationship('technicians', 'name')
                     ->multiple()
                     ->preload()
                     ->nullable(),
-                DateTimePicker::make('handled_at'),
-                DateTimePicker::make('completed_at'),
+
+                DateTimePicker::make('handled_at')
+                    ->label('Waktu Ditangani')
+                    ->nullable(),
+
+                DateTimePicker::make('completed_at')
+                    ->label('Waktu Selesai')
+                    ->nullable(),
+
                 FileUpload::make('photo')
                     ->image()
                     ->optimize('webp')
@@ -130,13 +204,17 @@ class RequestForm
                     ->disk('public')
                     ->directory('requests')
                     ->label('Foto Kerusakan'),
+
                 Textarea::make('description')
                     ->label('Deskripsi')
-                    ->required(),
+                    ->required()
+                    ->columnSpanFull(),
+
                 Textarea::make('technician_note')
                     ->label('Catatan Teknisi')
                     ->placeholder('Tuliskan hasil pekerjaan, kendala, atau catatan lainnya...')
                     ->rows(4)
+                    ->nullable()
                     ->columnSpanFull(),
             ]);
     }

@@ -28,7 +28,12 @@ class InfrastructureUnit extends Model
         return $this->hasMany(UnitLog::class, 'unit_id');
     }
 
-    // ✅ Helper generate kode otomatis
+    public function requestUnits()
+    {
+        return $this->hasMany(RequestUnit::class, 'unit_id');
+    }
+
+    // Helper generate kode otomatis
     public static function generateCode(Infrastructure $infra, int $number): string
     {
         // Ambil singkatan kategori

@@ -111,14 +111,15 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Section 2b: Infrastruktur (dynamic) -->
+                    <!-- Section 2b: Infrastruktur & Unit (dynamic) -->
                     <div id="infrastructure-section" style="display:none;">
                         <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">2b</span>
                             Detail Item
                         </h2>
 
-                        <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            {{-- Pilih Infrastruktur --}}
                             <div>
                                 <label class="block text-sm font-semibold text-slate-900 mb-2">
                                     Item yang Rusak <span class="text-slate-500">(Opsional)</span>
@@ -129,14 +130,19 @@
                                 </select>
                             </div>
 
-                            <div id="quantity-section" style="display:none;">
+                            {{-- Pilih Unit yang Rusak --}}
+                            <div id="unit-section" style="display:none;">
                                 <label class="block text-sm font-semibold text-slate-900 mb-2">
-                                    Jumlah yang Rusak <span class="text-red-500">*</span>
+                                    Unit yang Rusak <span class="text-red-500">*</span>
+                                    <span class="text-slate-400 font-normal text-xs" id="unit-count-label"></span>
                                 </label>
-                                <input type="number" name="damaged_quantity" id="damaged_quantity"
-                                    value="{{ old('damaged_quantity', 1) }}"
-                                    min="1"
-                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition">
+                                <div id="unit-checkboxes" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 border border-slate-200 rounded-lg">
+                                    {{-- Diisi via JavaScript --}}
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Pilih unit mana saja yang rusak</p>
+
+                                {{-- Hidden input jumlah rusak --}}
+                                <input type="hidden" name="damaged_quantity" id="damaged_quantity" value="0">
                             </div>
                         </div>
                     </div>
@@ -376,11 +382,15 @@
     });
 
     // ✅ Dynamic load infrastruktur berdasarkan lokasi & kategori
+    // ✅ Dynamic load infrastruktur
     const locationSelect = document.querySelector('select[name="location_id"]');
     const categorySelect = document.querySelector('select[name="category_id"]');
     const infraSection = document.getElementById('infrastructure-section');
     const infraSelect = document.getElementById('infrastructure_id');
-    const quantitySection = document.getElementById('quantity-section');
+    const unitSection = document.getElementById('unit-section');
+    const unitCheckboxes = document.getElementById('unit-checkboxes');
+    const unitCountLabel = document.getElementById('unit-count-label');
+    const damagedQty = document.getElementById('damaged_quantity');
 
     async function loadInfrastructures() {
         const locationId = locationSelect.value;
@@ -388,7 +398,8 @@
 
         // Reset
         infraSelect.innerHTML = '<option value="">-- Pilih Item --</option>';
-        quantitySection.style.display = 'none';
+        unitSection.style.display = 'none';
+        unitCheckboxes.innerHTML = '';
 
         if (!locationId || !categoryId) {
             infraSection.style.display = 'none';
@@ -416,9 +427,64 @@
         }
     }
 
-    // Tampilkan quantity saat item dipilih
+    async function loadUnits(infraId) {
+        unitCheckboxes.innerHTML = '';
+        unitSection.style.display = 'none';
+        damagedQty.value = 0;
+
+        if (!infraId) return;
+
+        try {
+            const response = await fetch(`/api/units?infrastructure_id=${infraId}`);
+            const units = await response.json();
+
+            if (units.length === 0) return;
+
+            unitSection.style.display = 'block';
+            unitCountLabel.textContent = `(${units.length} unit tersedia)`;
+
+            // ✅ Kalau hanya 1 unit, auto centang
+            units.forEach(unit => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'broken_unit_ids[]';
+                checkbox.value = unit.id;
+                checkbox.id = `unit_${unit.id}`;
+                checkbox.className = 'w-4 h-4 text-blue-600 rounded';
+
+                // ✅ Auto centang kalau hanya 1 unit
+                if (units.length === 1) {
+                    checkbox.checked = true;
+                    damagedQty.value = 1;
+                }
+
+                checkbox.addEventListener('change', updateDamagedCount);
+
+                const label = document.createElement('label');
+                label.htmlFor = `unit_${unit.id}`;
+                label.className = 'text-sm text-slate-700 cursor-pointer';
+                label.textContent = unit.code;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                unitCheckboxes.appendChild(div);
+            });
+
+        } catch (err) {
+            console.error('Error load units:', err);
+        }
+    }
+
+    function updateDamagedCount() {
+        const checked = document.querySelectorAll('input[name="broken_unit_ids[]"]:checked');
+        damagedQty.value = checked.length;
+    }
+
     infraSelect.addEventListener('change', function() {
-        quantitySection.style.display = this.value ? 'block' : 'none';
+        loadUnits(this.value);
     });
 
     locationSelect.addEventListener('change', loadInfrastructures);
