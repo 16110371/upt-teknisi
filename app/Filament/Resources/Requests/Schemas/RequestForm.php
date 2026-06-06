@@ -76,18 +76,28 @@ class RequestForm
                 Select::make('broken_unit_ids')
                     ->label('Unit yang Rusak')
                     ->multiple()
-                    ->options(function ($get) {
+                    ->options(function ($get, $record) {
                         $infraId = $get('infrastructure_id');
                         if (!$infraId) return [];
 
-                        return InfrastructureUnit::where('infrastructure_id', $infraId)
-                            ->where('status', 'good')
-                            ->where('is_active', true)
-                            ->pluck('code', 'id');
+                        $query = InfrastructureUnit::where('infrastructure_id', $infraId)
+                            ->where('is_active', true);
+
+                        // ✅ Tampilkan unit good + unit yang sudah terpilih (broken)
+                        if ($record) {
+                            $selectedIds = $record->brokenUnits()->pluck('unit_id')->toArray();
+                            $query->where(function ($q) use ($selectedIds) {
+                                $q->where('status', 'good')
+                                    ->orWhereIn('id', $selectedIds);
+                            });
+                        } else {
+                            $query->where('status', 'good');
+                        }
+
+                        return $query->pluck('code', 'id');
                     })
                     ->live()
                     ->afterStateUpdated(function ($state, callable $set) {
-                        // ✅ Auto isi jumlah rusak
                         $set('damaged_quantity', count($state ?? []));
                     })
                     ->hidden(fn($get) => !$get('infrastructure_id'))

@@ -226,17 +226,35 @@ class RequestObserver
 
     public function deleted(Request $request): void
     {
+        // ✅ Kembalikan status unit yang terkait
+        foreach ($request->requestUnits as $ru) {
+            $unit = $ru->unit;
+            if (!$unit) continue;
+
+            if ($ru->type === 'rusak') {
+                // ✅ Kembalikan ke good
+                $unit->update(['status' => 'good']);
+            } elseif ($ru->type === 'permanen') {
+                // ✅ Kembalikan ke broken
+                $unit->update(['status' => 'broken']);
+            }
+        }
+
+        // ✅ Hapus request units
+        $request->requestUnits()->delete();
+
+        // ✅ Logic infrastruktur yang sudah ada
         if (!$request->infrastructure_id) return;
 
         $infra    = $request->infrastructure;
-        $damaged  = $request->damaged_quantity ?? 1;
+        $quantity = $request->damaged_quantity ?? 1;
 
         if (in_array($request->status, ['Dikerjakan', 'Menunggu Part'])) {
             $infra->update([
-                'good'   => $infra->good + $damaged,
-                'broken' => max(0, $infra->broken - $damaged),
+                'good'   => $infra->good + $quantity,
+                'broken' => max(0, $infra->broken - $quantity),
             ]);
-            $this->log($infra->id, null, 'manual', $damaged, 'Request #' . $request->id . ' dihapus');
+            $this->log($infra->id, null, 'manual', $quantity, 'Request #' . $request->id . ' dihapus');
         }
     }
 

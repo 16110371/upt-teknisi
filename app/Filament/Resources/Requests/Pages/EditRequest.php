@@ -7,6 +7,7 @@ use App\Models\InfrastructureUnit;
 use App\Models\RequestUnit;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
 
 class EditRequest extends EditRecord
 {
@@ -38,6 +39,7 @@ class EditRequest extends EditRecord
 
     protected function afterSave(): void
     {
+        Log::info('Data saat save:', $this->data);
         $this->saveRequestUnits($this->record);
     }
 
