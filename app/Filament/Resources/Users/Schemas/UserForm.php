@@ -27,10 +27,12 @@ class UserForm
                 Select::make('role')
                     ->label('Role')
                     ->options([
-                        'admin' => 'Admin',
-                        'staff' => 'Staff',
+                        'admin'   => 'Admin UPT',
+                        'staff'   => 'Staff UPT',
+                        'sarpras' => 'Tim Sarpras',
+                        'guru'    => 'Guru',
                     ])
-                    ->default('staff')
+                    ->default('guru')
                     ->required(),
 
                 TextInput::make('password')
