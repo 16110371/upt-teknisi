@@ -11,10 +11,21 @@ class Location extends Model
 
     protected $fillable = [
         'name',
+        'room_code',
     ];
 
     public function infrastructures()
     {
         return $this->hasMany(Infrastructure::class);
+    }
+
+    public function goodAllocations()
+    {
+        return $this->hasMany(GoodAllocation::class);
+    }
+
+    public function goodUnits()
+    {
+        return $this->hasMany(GoodUnit::class);
     }
 }

@@ -8,6 +8,8 @@ use App\Models\Request;
 use App\Observers\InfrastructureObserver;
 use App\Observers\RequestObserver;
 use Illuminate\Support\Facades\URL;
+use App\Models\GoodAllocation;
+use App\Observers\GoodAllocationObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         // ... Observer kamu ...
         Request::observe(RequestObserver::class);
         Infrastructure::observe(InfrastructureObserver::class);
+        GoodAllocation::observe(GoodAllocationObserver::class);
 
         // ✅ Trust semua proxy (ngrok)
         \Illuminate\Http\Request::setTrustedProxies(

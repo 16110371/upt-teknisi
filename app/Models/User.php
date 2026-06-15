@@ -82,4 +82,14 @@ class User extends Authenticatable implements FilamentUser
             default   => false,
         };
     }
+
+    public function procurementRequests()
+    {
+        return $this->hasMany(ProcurementRequest::class);
+    }
+
+    public function goodAllocations()
+    {
+        return $this->hasMany(GoodAllocation::class);
+    }
 }
