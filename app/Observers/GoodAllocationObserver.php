@@ -2,7 +2,9 @@
 
 namespace App\Observers;
 
+use App\Models\Good;
 use App\Models\GoodAllocation;
+use App\Models\GoodUnit;
 use App\Models\StockMovement;
 
 class GoodAllocationObserver
@@ -29,6 +31,10 @@ class GoodAllocationObserver
         // ✅ Kembalikan stok
         $allocation->good->increment('stock', $allocation->quantity);
 
+        // ✅ Hapus kode unit terkait
+        GoodUnit::where('good_allocation_id', $allocation->id)->delete();
+
+        // ✅ Catat stock movement
         StockMovement::create([
             'good_id'        => $allocation->good_id,
             'type'           => 'retur',
@@ -38,5 +44,31 @@ class GoodAllocationObserver
             'reference_id'   => $allocation->id,
             'note'           => 'Retur dari ' . $allocation->location->name,
         ]);
+    }
+
+    private function generateUnitCodes(GoodAllocation $allocation): void
+    {
+        $good     = $allocation->good;
+        $location = $allocation->location;
+
+        // ✅ Cek lokasi sudah punya kode ruang
+        if (!$location->room_code) return;
+
+        // ✅ Hitung no urut terakhir untuk kombinasi jenis barang + lokasi
+        $lastSequence = GoodUnit::where('good_id', $good->id)
+            ->where('location_id', $location->id)
+            ->count();
+
+        for ($i = 1; $i <= $allocation->quantity; $i++) {
+            $sequence = $lastSequence + $i;
+            $code     = GoodUnit::generateCode($good, $location, $sequence);
+
+            GoodUnit::create([
+                'good_id'            => $good->id,
+                'good_allocation_id' => $allocation->id,
+                'location_id'        => $location->id,
+                'code'               => $code,
+            ]);
+        }
     }
 }

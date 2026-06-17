@@ -7,6 +7,13 @@ use App\Models\FcmToken;
 use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\SarprasController;
+use App\Filament\Sarpras\Pages\GoodsByType;
+use App\Filament\Sarpras\Pages\GoodDetail;
+use App\Filament\Sarpras\Resources\Goods\Pages\CreateGood;
+use App\Filament\Sarpras\Resources\Goods\Pages\EditGood;
+
+
 
 Route::get('/', function () {
     return view('index');
@@ -133,4 +140,35 @@ Route::get('/api/units', function (\Illuminate\Http\Request $request) {
             ->select('id', 'code', 'status')
             ->get()
     );
+});
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/sarpras/good-allocations/{id}/print-qr', [SarprasController::class, 'printQr'])
+        ->name('sarpras.allocation.qr');
+
+    Route::get('/sarpras/good-units/{id}/print-qr', [SarprasController::class, 'printUnitQr'])
+        ->name('sarpras.unit.qr');
+
+    Route::get('/sarpras/good-units/print-qr-bulk', [SarprasController::class, 'printBulkQr'])
+        ->name('sarpras.units.qr.bulk');
+});
+
+Route::middleware([
+    'web',
+    'auth',
+    \Filament\Http\Middleware\SetUpPanel::class . ':sarpras',
+])->group(function () {
+    Route::get('/sarpras/goods/by-type/{typeId}', GoodsByType::class)
+        ->name('sarpras.goods.by-type');
+
+    Route::get('/sarpras/goods/detail/{goodId}', GoodDetail::class)
+        ->name('sarpras.goods.detail');
+
+    Route::get('/sarpras/goods/create', CreateGood::class)
+        ->name('sarpras.goods.create');
+
+    // ✅ Tambah route edit good
+    Route::get('/sarpras/goods/{id}/edit', EditGood::class)
+        ->name('sarpras.goods.edit');
 });

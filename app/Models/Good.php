@@ -21,6 +21,7 @@ class Good extends Model
         'price',
         'purchase_date',
         'is_consumable',
+        'funding_source',
         'note',
         'photo',
         'procurement_year',

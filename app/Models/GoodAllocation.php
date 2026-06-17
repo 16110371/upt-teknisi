@@ -19,6 +19,8 @@ class GoodAllocation extends Model
         'allocation_date' => 'date',
     ];
 
+    public bool $generate_unit_codes = true;
+
     public function good()
     {
         return $this->belongsTo(Good::class);
@@ -32,5 +34,10 @@ class GoodAllocation extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function goodUnits()
+    {
+        return $this->hasMany(GoodUnit::class);
     }
 }

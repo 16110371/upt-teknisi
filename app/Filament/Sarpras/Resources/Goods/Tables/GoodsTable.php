@@ -56,6 +56,18 @@ class GoodsTable
                     ->numeric()
                     ->sortable(),
 
+                TextColumn::make('funding_source')
+                    ->label('Sumber Dana')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'BOS'     => 'info',
+                        'BOSDA'   => 'success',
+                        'Sekolah' => 'danger',
+                        'Bantuan' => 'warning',
+                        default   => 'gray',
+                    })
+                    ->default('-'),
+
                 TextColumn::make('stock')
                     ->label('Stok')
                     ->numeric()
