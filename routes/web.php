@@ -8,8 +8,8 @@ use App\Models\Infrastructure;
 use App\Http\Controllers\InfrastructureReportController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\SarprasController;
-use App\Filament\Sarpras\Pages\GoodsByType;
-use App\Filament\Sarpras\Pages\GoodDetail;
+use App\Filament\Sarpras\Resources\Goods\Pages\GoodsByType;
+use App\Filament\Sarpras\Resources\Goods\Pages\GoodDetail;
 use App\Filament\Sarpras\Resources\Goods\Pages\CreateGood;
 use App\Filament\Sarpras\Resources\Goods\Pages\EditGood;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Sarpras\Pages;
+namespace App\Filament\Sarpras\Resources\Goods\Pages;
 
 use App\Models\Good;
 use App\Models\GoodsType;
@@ -47,12 +47,6 @@ class GoodsByType extends Page implements HasTable
                     ->with(['supplier'])
             )
             ->columns([
-                ImageColumn::make('photo')
-                    ->label('Foto')
-                    ->disk('public')
-                    ->circular()
-                    ->size(40),
-
                 TextColumn::make('name')
                     ->label('Nama Barang')
                     ->searchable()
@@ -67,13 +61,16 @@ class GoodsByType extends Page implements HasTable
                     ->limit(30)
                     ->default('-'),
 
-                TextColumn::make('unit')
-                    ->label('Satuan'),
-
                 TextColumn::make('quantity')
                     ->label('Total')
                     ->numeric()
                     ->sortable(),
+
+                TextColumn::make('allocated')
+                    ->label('Dialokasikan')
+                    ->getStateUsing(fn($record) => $record->quantity - $record->stock)
+                    ->numeric()
+                    ->color('warning'),
 
                 TextColumn::make('stock')
                     ->label('Stok')
@@ -98,10 +95,6 @@ class GoodsByType extends Page implements HasTable
                     ->date('d M Y')
                     ->default('-')
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                IconColumn::make('is_consumable')
-                    ->label('Habis Pakai')
-                    ->boolean(),
             ])
             ->filters([
                 TernaryFilter::make('is_consumable')
@@ -130,6 +123,42 @@ class GoodsByType extends Page implements HasTable
                     ->color('primary')
                     ->url(fn() => route('sarpras.goods.create', ['type_id' => $this->goodsType->id])),
             ])
-            ->recordUrl(fn($record) => route('sarpras.goods.detail', $record->id));
+            ->recordUrl(fn($record) => route('sarpras.goods.detail', $record->id))
+            ->recordActions([
+                // ✅ Tambah tombol edit
+                \Filament\Actions\Action::make('edit')
+                    ->label('')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('warning')
+                    ->url(fn($record) => route('sarpras.goods.edit', $record->id)),
+
+                Action::make('delete')
+                    ->label('')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Barang')
+                    ->modalDescription(fn($record) => "Yakin ingin menghapus \"{$record->name}\"?")
+                    ->visible(
+                        fn($record) =>
+                        $record->goodUnits()->count() === 0 &&
+                            $record->allocations()->count() === 0
+                    )
+                    ->action(fn($record) => $record->delete()),
+
+                Action::make('cannot_delete')
+                    ->label('')
+                    ->icon('heroicon-o-trash')
+                    ->color('gray')
+                    ->disabled()
+                    ->tooltip('Tidak bisa dihapus karena sudah punya unit/alokasi')
+                    ->visible(
+                        fn($record) =>
+                        $record->goodUnits()->count() > 0 ||
+                            $record->allocations()->count() > 0
+                    )
+                    ->action(fn() => null),
+
+            ]);
     }
 }
