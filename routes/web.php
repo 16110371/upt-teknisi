@@ -12,7 +12,8 @@ use App\Filament\Sarpras\Resources\Goods\Pages\GoodsByType;
 use App\Filament\Sarpras\Resources\Goods\Pages\GoodDetail;
 use App\Filament\Sarpras\Resources\Goods\Pages\CreateGood;
 use App\Filament\Sarpras\Resources\Goods\Pages\EditGood;
-
+use App\Filament\Sarpras\Pages\InventarisPage;
+use App\Filament\Sarpras\Pages\UnitDetailPage;
 
 
 Route::get('/', function () {
@@ -168,7 +169,14 @@ Route::middleware([
     Route::get('/sarpras/goods/create', CreateGood::class)
         ->name('sarpras.goods.create');
 
-    // ✅ Tambah route edit good
     Route::get('/sarpras/goods/{id}/edit', EditGood::class)
         ->name('sarpras.goods.edit');
+
+    // ✅ Inventaris per lokasi
+    Route::get('/sarpras/inventaris', InventarisPage::class)
+        ->name('sarpras.inventaris');
+
+    // ✅ Detail per unit (Layer 2) - nanti kita buat
+    Route::get('/sarpras/inventaris/unit/{id}', UnitDetailPage::class)
+        ->name('sarpras.inventaris.unit');
 });
