@@ -180,3 +180,52 @@ Route::middleware([
     Route::get('/sarpras/inventaris/unit/{id}', UnitDetailPage::class)
         ->name('sarpras.inventaris.unit');
 });
+
+// ✅ Download template import barang
+Route::get('/sarpras/goods/template', function () {
+    return \Maatwebsite\Excel\Facades\Excel::download(
+        new class implements
+            \Maatwebsite\Excel\Concerns\FromArray,
+            \Maatwebsite\Excel\Concerns\WithHeadings {
+            public function array(): array
+            {
+                return [[
+                    'A',
+                    'A10',
+                    'Monitor LG 22"',
+                    '22 inch Full HD',
+                    'LG',
+                    24,
+                    'unit',
+                    1500000,
+                    '2022-01-15',
+                    2022,
+                    'Toko ABC',
+                    'tidak',
+                    'BOS',
+                    '-'
+                ]];
+            }
+            public function headings(): array
+            {
+                return [
+                    'kategori',
+                    'kode_jenis',
+                    'nama_barang',
+                    'spesifikasi',
+                    'merk',
+                    'jumlah',
+                    'satuan',
+                    'harga',
+                    'tanggal_beli',
+                    'tahun',
+                    'supplier',
+                    'habis_pakai',
+                    'sumber_dana',
+                    'catatan'
+                ];
+            }
+        },
+        'template-import-barang.xlsx'
+    );
+})->name('sarpras.goods.template')->middleware('auth');
