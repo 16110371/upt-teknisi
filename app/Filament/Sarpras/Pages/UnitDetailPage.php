@@ -18,6 +18,8 @@ use Filament\Tables\Table;
 use BackedEnum;
 use Filament\Support\Icons\Heroicon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+// use Filament\Infolists\Components\Actions\Action;
+use Filament\Infolists\Components\ViewEntry;
 
 class UnitDetailPage extends Page implements HasTable, HasInfolists
 {
@@ -59,6 +61,19 @@ class UnitDetailPage extends Page implements HasTable, HasInfolists
                             ->badge()
                             ->color('success'),
 
+                        ViewEntry::make('qr_code')
+                            ->label('QR Code')
+                            ->view('filament.sarpras.components.qr-code')
+                            ->viewData(['qrBase64' => $qrBase64])
+                            ->hintAction(
+                                Action::make('cetak_qr')
+                                    ->label('Cetak QR Code')
+                                    ->icon('heroicon-m-printer')
+                                    ->color('success')
+                                    ->url(route('sarpras.unit.qr', request()->route('id')))
+                                    ->openUrlInNewTab() // Sama dengan target="_blank"
+                            ),
+
                         TextEntry::make('location.name')
                             ->label('Lokasi'),
 
@@ -96,11 +111,6 @@ class UnitDetailPage extends Page implements HasTable, HasInfolists
                             ->label('Tgl Generate Kode')
                             ->dateTime('d M Y'),
 
-                        \Filament\Infolists\Components\ViewEntry::make('qr_code')
-                            ->label('QR Code')
-                            ->view('filament.sarpras.components.qr-code')
-                            ->viewData(['qrBase64' => $qrBase64])
-                            ->columnSpanFull(),
                     ])->columns(2),
             ]);
     }
@@ -125,9 +135,9 @@ class UnitDetailPage extends Page implements HasTable, HasInfolists
                         default      => 'gray',
                     })
                     ->formatStateUsing(fn($state) => match ($state) {
-                        'rusak'      => '🔧 Rusak',
-                        'diperbaiki' => '✅ Diperbaiki',
-                        'permanen'   => '❌ Rusak Permanen',
+                        'rusak'      => 'Rusak',
+                        'diperbaiki' => 'Diperbaiki',
+                        'permanen'   => 'Rusak Permanen',
                         default      => $state,
                     }),
 
@@ -168,13 +178,6 @@ class UnitDetailPage extends Page implements HasTable, HasInfolists
                     ->url(fn() => route('sarpras.inventaris', [
                         'location_id' => $this->unit->location_id
                     ])),
-
-                Action::make('print_qr')
-                    ->label('🖨️ Cetak QR')
-                    ->color('success')
-                    ->icon('heroicon-o-qr-code')
-                    ->url(fn() => route('sarpras.unit.qr', $this->unit->id))
-                    ->openUrlInNewTab(),
             ]);
     }
 

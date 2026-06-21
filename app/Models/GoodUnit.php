@@ -11,6 +11,7 @@ class GoodUnit extends Model
         'good_allocation_id',
         'location_id',
         'code',
+        'status',
     ];
 
     public function good()

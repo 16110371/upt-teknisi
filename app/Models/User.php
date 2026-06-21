@@ -76,6 +76,7 @@ class User extends Authenticatable implements FilamentUser
     {
         return match ($panel->getId()) {
             'admin'   => $this->role === 'admin',
+            'upt'     => in_array($this->role, ['admin', 'staff']),
             'staff'   => in_array($this->role, ['admin', 'staff']),
             'sarpras' => in_array($this->role, ['admin', 'sarpras']),
             'guru'    => in_array($this->role, ['admin', 'guru', 'sarpras']),
