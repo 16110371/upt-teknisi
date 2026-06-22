@@ -75,7 +75,7 @@ class UnitController extends Controller
                     $token,
                     'Laporan Kerusakan Unit',
                     "Unit {$unit->code} dilaporkan bermasalah oleh {$validated['requester_name']}",
-                    url('/admin/requests')
+                    url('/upt/requests')
                 );
             } catch (\Exception $e) {
                 Log::error('FCM error: ' . $e->getMessage());

@@ -85,7 +85,7 @@ class PublicRequestController extends Controller
                     $token,
                     'Permintaan Baru',
                     'Permintaan dari ' . $requestModel->requester_name,
-                    url('/admin/requests')
+                    url('/upt/requests')
                 );
 
                 if (in_array($response->status(), [400, 404])) {

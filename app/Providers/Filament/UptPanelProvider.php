@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\View\PanelsRenderHook;
 
 class UptPanelProvider extends PanelProvider
 {
@@ -60,6 +61,15 @@ class UptPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+
+            ->renderHook(
+                'panels::head.end',
+                fn() => view('upt-pwa')
+            )
+            ->renderHook(
+                'panels::body.end',
+                fn() => view('firebase-script') // ✅ pakai yang sama
+            );
     }
 }
