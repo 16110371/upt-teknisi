@@ -12,12 +12,13 @@ class LocationForm
     {
         return $schema
             ->components([
-                Section::make('Pengaturan Kode Ruang')
+                Section::make('Pengaturan Lokasi')
                     ->schema([
                         TextInput::make('name')
                             ->label('Nama Lokasi')
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->required()
+                            ->maxLength(100)
+                            ->placeholder('Contoh: Lab TJKT 1, Lab DKV 2'),
 
                         TextInput::make('room_code')
                             ->label('Kode Ruang')

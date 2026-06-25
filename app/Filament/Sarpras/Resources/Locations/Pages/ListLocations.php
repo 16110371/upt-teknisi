@@ -4,6 +4,7 @@ namespace App\Filament\Sarpras\Resources\Locations\Pages;
 
 use App\Filament\Sarpras\Resources\Locations\LocationResource;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ListLocations extends ListRecords
 {
@@ -11,6 +12,8 @@ class ListLocations extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return []; // ✅ tidak ada tombol create
+        return [
+            CreateAction::make()->label('Tambah Lokasi'),
+        ];
     }
 }

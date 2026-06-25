@@ -5,6 +5,7 @@ namespace App\Filament\Sarpras\Resources\Locations\Tables;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Actions\CreateAction;
 
 class LocationsTable
 {
@@ -28,5 +29,12 @@ class LocationsTable
                 EditAction::make()->label('Atur Kode'),
             ])
             ->toolbarActions([]);
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            CreateAction::make(),
+        ];
     }
 }

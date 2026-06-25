@@ -2,6 +2,7 @@
 
 namespace App\Filament\Sarpras\Resources\Locations;
 
+use App\Filament\Sarpras\Resources\Locations\Pages\CreateLocation;
 use App\Filament\Sarpras\Resources\Locations\Pages\EditLocation;
 use App\Filament\Sarpras\Resources\Locations\Pages\ListLocations;
 use App\Filament\Sarpras\Resources\Locations\Schemas\LocationForm;
@@ -51,7 +52,9 @@ class LocationResource extends Resource
     {
         return [
             'index' => ListLocations::route('/'),
+            'create' => CreateLocation::route('/create'),
             'edit'  => EditLocation::route('/{record}/edit'),
+
         ];
     }
 }
