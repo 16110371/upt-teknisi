@@ -94,11 +94,6 @@ class InventarisPage extends Page implements HasTable
                     ->label('Jenis')
                     ->sortable(),
 
-                TextColumn::make('good.category.name')
-                    ->label('Kategori')
-                    ->badge()
-                    ->color('info'),
-
                 TextColumn::make('good.brand')
                     ->label('Merk')
                     ->default('-'),
@@ -140,9 +135,12 @@ class InventarisPage extends Page implements HasTable
                     ->label('Cetak QR Terpilih')
                     ->icon('heroicon-o-printer')
                     ->color('success')
-                    ->action(function ($records) {
+                    ->action(function ($records, \Filament\Pages\Page $livewire) {
                         $ids = $records->pluck('id')->implode(',');
-                        return redirect()->route('sarpras.units.qr.bulk', ['ids' => $ids]);
+                        $url = route('sarpras.units.qr.bulk', ['ids' => $ids]);
+
+                        // Menggunakan Livewire dispatch untuk membuka tab baru di sisi browser
+                        $livewire->js("window.open('{$url}', '_blank')");
                     }),
             ]);
     }

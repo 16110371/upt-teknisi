@@ -229,3 +229,19 @@ Route::get('/sarpras/goods/template', function () {
         'template-import-barang.xlsx'
     );
 })->name('sarpras.goods.template')->middleware('auth');
+
+
+Route::get('/api/good-units', function (\Illuminate\Http\Request $request) {
+    $units = \App\Models\GoodUnit::where('location_id', $request->location_id)
+        ->where('status', 'good')
+        ->with('good')
+        ->get()
+        ->map(fn($unit) => [
+            'id'        => $unit->id,
+            'code'      => $unit->code,
+            'good_name' => $unit->good->name ?? '-',
+            'status'    => $unit->status,
+        ]);
+
+    return response()->json($units);
+});

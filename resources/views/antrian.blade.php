@@ -67,16 +67,42 @@
 
                             {{-- Perangkat --}}
                             <td class="px-6 py-4 text-slate-700">
+                                @php
+                                // ✅ Ambil nama barang dari request_units (good_units)
+                                $unitNames = \App\Models\RequestUnit::where('request_id', $item->id)
+                                ->join('good_units', 'request_units.unit_id', '=', 'good_units.id')
+                                ->join('goods', 'good_units.good_id', '=', 'goods.id')
+                                ->pluck('goods.name')
+                                ->unique()
+                                ->implode(', ');
+                                @endphp
+
+                                @if ($unitNames)
+                                {{ $unitNames }}
+                                @elseif ($item->infrastructure)
+                                {{ $item->infrastructure->name }}
+                                @elseif ($item->category)
                                 {{ $item->category->name }}
+                                @else
+                                <span class="text-slate-400">-</span>
+                                @endif
                             </td>
 
-                            {{-- Item Infrastruktur --}}
+                            {{-- Item --}}
                             <td class="px-6 py-4 text-slate-700">
-                                @if ($item->infrastructure)
+                                @php
+                                $unitCodes = \App\Models\RequestUnit::where('request_id', $item->id)
+                                ->join('good_units', 'request_units.unit_id', '=', 'good_units.id')
+                                ->pluck('good_units.code')
+                                ->implode(', ');
+                                @endphp
+
+                                @if ($unitCodes)
+                                <div class="text-xs">{{ $unitCodes }}</div>
+                                <div class="text-xs text-slate-400">Jml: {{ $item->damaged_quantity }}</div>
+                                @elseif ($item->infrastructure)
                                 <div>{{ $item->infrastructure->name }}</div>
-                                <div class="text-xs text-slate-400">
-                                    Jml: {{ $item->damaged_quantity }}
-                                </div>
+                                <div class="text-xs text-slate-400">Jml: {{ $item->damaged_quantity }}</div>
                                 @else
                                 <span class="text-slate-400">-</span>
                                 @endif

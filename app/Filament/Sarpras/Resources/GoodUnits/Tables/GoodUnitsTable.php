@@ -86,7 +86,8 @@ class GoodUnitsTable
                         ->action(function (Collection $records) {
                             $ids = $records->pluck('id')->implode(',');
                             return redirect()->route('sarpras.units.qr.bulk', ['ids' => $ids]);
-                        }),
+                        })
+                        ->openUrlInNewTab(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

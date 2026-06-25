@@ -12,10 +12,11 @@
 
         body {
             font-family: Arial, sans-serif;
+            padding: 10px;
         }
 
         @page {
-            margin: 1.5cm;
+            margin: 2cm;
             size: A4 portrait;
         }
 

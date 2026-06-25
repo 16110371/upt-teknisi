@@ -12,10 +12,11 @@
 
         body {
             font-family: Arial, sans-serif;
+            padding: 10px;
         }
 
         @page {
-            margin: 1.5cm;
+            margin: 2cm;
             size: A4 portrait;
         }
 
@@ -109,11 +110,6 @@
 </head>
 
 <body>
-
-    <div class="header">
-        <h1>Cetak Kode Inventaris</h1>
-        <p>{{ $unitsWithQr->count() }} unit &bull; {{ now()->translatedFormat('d F Y') }}</p>
-    </div>
     <table>
         @foreach ($unitsWithQr->chunk(4) as $row)
         <tr>

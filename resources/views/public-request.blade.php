@@ -68,81 +68,50 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Informasi Perangkat -->
+                    <!-- Section 2: Lokasi & Unit -->
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
-                            <span
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">2</span>
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">2</span>
                             Informasi Perangkat/Fasilitas
                         </h2>
 
-                        <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            {{-- Pilih Lokasi --}}
                             <div>
                                 <label class="block text-sm font-semibold text-slate-900 mb-2">
                                     Lokasi/Ruangan <span class="text-red-500">*</span>
                                 </label>
-                                <select name="location_id"
+                                <select name="location_id" id="location_id"
                                     class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                                     required>
                                     <option value="">-- Pilih Lokasi --</option>
                                     @foreach ($locations as $loc)
-                                    <option value="{{ $loc->id }}"
-                                        {{ old('location_id') == $loc->id ? 'selected' : '' }}>
+                                    <option value="{{ $loc->id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>
                                         {{ $loc->name }}
                                     </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-900 mb-2">
-                                    Tipe Perangkat/Fasilitas <span class="text-red-500">*</span>
-                                </label>
-                                <select name="category_id"
-                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                                    required>
-                                    <option value="">-- Pilih Tipe --</option>
-                                    @foreach ($categories as $cat)
-                                    <option value="{{ $cat->id }}"
-                                        {{ old('category_id') == $cat->id ? 'selected' : '' }}>
-                                        {{ $cat->name }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Section 2b: Infrastruktur & Unit (dynamic) -->
-                    <div id="infrastructure-section" style="display:none;">
-                        <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-200">
-                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold mr-3">2b</span>
-                            Detail Item
-                        </h2>
 
-                        <div class="space-y-6">
-                            {{-- Pilih Infrastruktur --}}
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-900 mb-2">
-                                    Item yang Rusak <span class="text-slate-500">(Opsional)</span>
-                                </label>
-                                <select name="infrastructure_id" id="infrastructure_id"
-                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition">
-                                    <option value="">-- Pilih Item --</option>
-                                </select>
-                            </div>
-
-                            {{-- Pilih Unit yang Rusak --}}
+                            {{-- Pilih Unit yang Rusak (dynamic) --}}
                             <div id="unit-section" style="display:none;">
                                 <label class="block text-sm font-semibold text-slate-900 mb-2">
                                     Unit yang Rusak <span class="text-red-500">*</span>
                                     <span class="text-slate-400 font-normal text-xs" id="unit-count-label"></span>
                                 </label>
-                                <div id="unit-checkboxes" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 border border-slate-200 rounded-lg">
+                                <div id="unit-checkboxes"
+                                    class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 border border-slate-200 rounded-lg bg-slate-50">
                                     {{-- Diisi via JavaScript --}}
                                 </div>
                                 <p class="text-xs text-slate-500 mt-1">Pilih unit mana saja yang rusak</p>
-
-                                {{-- Hidden input jumlah rusak --}}
                                 <input type="hidden" name="damaged_quantity" id="damaged_quantity" value="0">
+                            </div>
+
+                            {{-- Pesan jika tidak ada unit --}}
+                            <div id="no-unit-message" style="display:none;">
+                                <p class="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                    ℹ️ Tidak ada unit terdaftar di lokasi ini. Silahkan pilih lokasi lain atau lanjut tanpa memilih unit.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -381,69 +350,34 @@
         reader.readAsDataURL(file);
     });
 
-    // ✅ Dynamic load infrastruktur berdasarkan lokasi & kategori
-    // ✅ Dynamic load infrastruktur
-    const locationSelect = document.querySelector('select[name="location_id"]');
-    const categorySelect = document.querySelector('select[name="category_id"]');
-    const infraSection = document.getElementById('infrastructure-section');
-    const infraSelect = document.getElementById('infrastructure_id');
+    // ✅ Dynamic load GoodUnit berdasarkan lokasi
+    const locationSelect = document.getElementById('location_id');
     const unitSection = document.getElementById('unit-section');
     const unitCheckboxes = document.getElementById('unit-checkboxes');
     const unitCountLabel = document.getElementById('unit-count-label');
+    const noUnitMessage = document.getElementById('no-unit-message');
     const damagedQty = document.getElementById('damaged_quantity');
 
-    async function loadInfrastructures() {
-        const locationId = locationSelect.value;
-        const categoryId = categorySelect.value;
-
-        // Reset
-        infraSelect.innerHTML = '<option value="">-- Pilih Item --</option>';
-        unitSection.style.display = 'none';
-        unitCheckboxes.innerHTML = '';
-
-        if (!locationId || !categoryId) {
-            infraSection.style.display = 'none';
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/infrastructures?location_id=${locationId}&category_id=${categoryId}`);
-            const data = await response.json();
-
-            if (data.length > 0) {
-                data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = `${item.name} (Baik: ${item.good}, Rusak: ${item.broken})`;
-                    infraSelect.appendChild(option);
-                });
-                infraSection.style.display = 'block';
-            } else {
-                infraSection.style.display = 'none';
-            }
-        } catch (err) {
-            console.error('Error load infrastruktur:', err);
-            infraSection.style.display = 'none';
-        }
-    }
-
-    async function loadUnits(infraId) {
+    async function loadUnits(locationId) {
         unitCheckboxes.innerHTML = '';
         unitSection.style.display = 'none';
+        noUnitMessage.style.display = 'none';
         damagedQty.value = 0;
 
-        if (!infraId) return;
+        if (!locationId) return;
 
         try {
-            const response = await fetch(`/api/units?infrastructure_id=${infraId}`);
+            const response = await fetch(`/api/good-units?location_id=${locationId}`);
             const units = await response.json();
 
-            if (units.length === 0) return;
+            if (units.length === 0) {
+                noUnitMessage.style.display = 'block';
+                return;
+            }
 
             unitSection.style.display = 'block';
             unitCountLabel.textContent = `(${units.length} unit tersedia)`;
 
-            // ✅ Kalau hanya 1 unit, auto centang
             units.forEach(unit => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-2';
@@ -466,7 +400,7 @@
                 const label = document.createElement('label');
                 label.htmlFor = `unit_${unit.id}`;
                 label.className = 'text-sm text-slate-700 cursor-pointer';
-                label.textContent = unit.code;
+                label.textContent = `${unit.code} - ${unit.good_name}`;
 
                 div.appendChild(checkbox);
                 div.appendChild(label);
@@ -483,11 +417,8 @@
         damagedQty.value = checked.length;
     }
 
-    infraSelect.addEventListener('change', function() {
+    locationSelect.addEventListener('change', function() {
         loadUnits(this.value);
     });
-
-    locationSelect.addEventListener('change', loadInfrastructures);
-    categorySelect.addEventListener('change', loadInfrastructures);
 </script>
 @endpush

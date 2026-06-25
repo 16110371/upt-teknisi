@@ -32,11 +32,9 @@ class PublicRequestController extends Controller
             'request_date'        => 'nullable|date',
             'requester_name'      => 'required|string|max:100',
             'requester_contact'   => 'nullable|string|max:50',
-            'category_id'         => 'required|exists:categories,id',
             'location_id'         => 'required|exists:locations,id',
-            'infrastructure_id'   => 'nullable|exists:infrastructures,id',
             'broken_unit_ids'     => 'nullable|array',
-            'broken_unit_ids.*'   => 'exists:infrastructure_units,id',
+            'broken_unit_ids.*'   => 'exists:good_units,id',
             'damaged_quantity'    => 'nullable|integer|min:0',
             'description'         => 'required|string|max:2000',
             'priority'            => 'nullable|string|in:Rendah,Sedang,Tinggi',
@@ -53,9 +51,16 @@ class PublicRequestController extends Controller
             $validated['photo'] = ImageService::compress($request->file('photo'), 'requests');
         }
 
-        // ✅ Ambil broken_unit_ids sebelum create
+        // ✅ Auto-fill category_id dari unit pertama
         $brokenUnitIds = $validated['broken_unit_ids'] ?? [];
         unset($validated['broken_unit_ids']);
+
+        if (!empty($brokenUnitIds)) {
+            $unit = \App\Models\GoodUnit::with('good')->find($brokenUnitIds[0]);
+            $validated['category_id'] = $unit?->good?->goods_category_id ?? null;
+        } else {
+            $validated['category_id'] = null;
+        }
 
         $validated['priority']         = $validated['priority'] ?? 'Rendah';
         $validated['status']           = 'Pending';
