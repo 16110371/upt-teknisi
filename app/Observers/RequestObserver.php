@@ -2,22 +2,16 @@
 
 namespace App\Observers;
 
+use App\Models\GoodUnit;
 use App\Models\InfrastructureLog;
 use App\Models\Request;
+use App\Models\RequestUnit;
 use Illuminate\Support\Facades\Log;
 
 class RequestObserver
 {
     public function updated(Request $request): void
     {
-        Log::info('Observer triggered', [
-            'status_changed' => $request->wasChanged('status'),
-            'old_status'     => $request->getOriginal('status'),
-            'new_status'     => $request->status,
-            'fixed'          => $request->fixed_quantity,
-            'permanent'      => $request->permanent_quantity,
-            'damaged'        => $request->damaged_quantity,
-        ]);
         if (
             !$request->wasChanged('status') &&
             !$request->wasChanged('fixed_quantity') &&
@@ -31,11 +25,11 @@ class RequestObserver
         $permanent = $request->permanent_quantity ?? 0;
         $sisa      = max(0, $damaged - $fixed - $permanent);
 
+        // ✅ Update GoodUnit status berdasarkan transisi status
+        $this->updateGoodUnitStatus($request, $oldStatus, $newStatus, $fixed, $permanent);
+
         // ✅ Pending → Dikerjakan
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Pending' && $newStatus === 'Dikerjakan'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Pending' && $newStatus === 'Dikerjakan') {
             if (!$request->handled_at) {
                 $request->updateQuietly(['handled_at' => now()]);
             }
@@ -53,15 +47,13 @@ class RequestObserver
         }
 
         // ✅ Pending → Menunggu Part
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Pending' && $newStatus === 'Menunggu Part'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Pending' && $newStatus === 'Menunggu Part') {
             if (!$request->handled_at) {
                 $request->updateQuietly(['handled_at' => now()]);
             }
 
             if ($request->infrastructure_id) {
+                $infra = $request->infrastructure;
                 if (!$request->from_room_check) {
                     $infra->update([
                         'good'   => max(0, $infra->good - $damaged),
@@ -73,10 +65,7 @@ class RequestObserver
         }
 
         // ✅ Pending → Selesai langsung
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Pending' && $newStatus === 'Selesai'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Pending' && $newStatus === 'Selesai') {
             $request->updateQuietly([
                 'handled_at'   => now(),
                 'completed_at' => now(),
@@ -85,7 +74,6 @@ class RequestObserver
             if ($request->infrastructure_id) {
                 $infra = $request->infrastructure;
                 if ($request->from_room_check) {
-                    // ✅ Dari room check: good + fixed, broken - damaged, permanent + permanent
                     $infra->update([
                         'good'             => $infra->good + $fixed,
                         'broken'           => max(0, $infra->broken - $damaged + ($damaged - $fixed - $permanent)),
@@ -103,20 +91,14 @@ class RequestObserver
         }
 
         // ✅ Dikerjakan → Menunggu Part
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Dikerjakan' && $newStatus === 'Menunggu Part'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Dikerjakan' && $newStatus === 'Menunggu Part') {
             if ($request->infrastructure_id) {
                 $this->log($request->infrastructure_id, $request->id, 'rusak', $damaged, 'Menunggu Part');
             }
         }
 
         // ✅ Menunggu Part → Dikerjakan
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Menunggu Part' && $newStatus === 'Dikerjakan'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Menunggu Part' && $newStatus === 'Dikerjakan') {
             if ($request->infrastructure_id) {
                 $this->log($request->infrastructure_id, $request->id, 'rusak', $damaged, 'Dilanjutkan dari Menunggu Part');
             }
@@ -132,29 +114,17 @@ class RequestObserver
 
             if ($request->infrastructure_id) {
                 $infra = $request->infrastructure;
-
-                // ✅ good + fixed, broken - damaged, permanent_broken + permanent
                 $infra->update([
                     'good'             => $infra->good + $fixed,
                     'broken'           => max(0, $infra->broken - $damaged + $sisa),
                     'permanent_broken' => $infra->permanent_broken + $permanent,
                 ]);
-
-                $this->log(
-                    $infra->id,
-                    $request->id,
-                    'selesai',
-                    $fixed,
-                    "Selesai: fixed={$fixed}, permanent={$permanent}, sisa={$sisa}"
-                );
+                $this->log($infra->id, $request->id, 'selesai', $fixed, "Selesai: fixed={$fixed}, permanent={$permanent}, sisa={$sisa}");
             }
         }
 
         // ✅ Selesai → Dikerjakan (dibuka kembali)
-        if (
-            $request->wasChanged('status') &&
-            $oldStatus === 'Selesai' && $newStatus === 'Dikerjakan'
-        ) {
+        if ($request->wasChanged('status') && $oldStatus === 'Selesai' && $newStatus === 'Dikerjakan') {
             $request->updateQuietly(['completed_at' => null]);
 
             if ($request->infrastructure_id) {
@@ -178,7 +148,6 @@ class RequestObserver
 
             if ($request->infrastructure_id) {
                 $infra = $request->infrastructure;
-
                 if ($oldStatus === 'Pending') {
                     $infra->update([
                         'good'             => max(0, $infra->good - $damaged),
@@ -190,7 +159,6 @@ class RequestObserver
                         'permanent_broken' => $infra->permanent_broken + $damaged,
                     ]);
                 }
-
                 $this->log($infra->id, $request->id, 'manual', $damaged, 'Tidak dapat diperbaiki');
             }
         }
@@ -212,30 +180,63 @@ class RequestObserver
                     'broken'           => max(0, $infra->broken - $diffFixed - $diffPermanent),
                     'permanent_broken' => max(0, $infra->permanent_broken + $diffPermanent),
                 ]);
+                $this->log($infra->id, $request->id, 'manual', $fixed, "Update: fixed={$fixed}, permanent={$permanent}");
+            }
+        }
+    }
 
-                $this->log(
-                    $infra->id,
-                    $request->id,
-                    'manual',
-                    $fixed,
-                    "Update: fixed={$fixed}, permanent={$permanent}"
-                );
+    // ✅ Update GoodUnit status berdasarkan transisi status request
+    private function updateGoodUnitStatus(Request $request, string $oldStatus, string $newStatus, int $fixed, int $permanent): void
+    {
+        if (!$request->wasChanged('status')) {
+            // ✅ Update fixed/permanent units jika quantity berubah
+            if ($request->wasChanged('fixed_unit_ids') || $request->wasChanged('permanent_unit_ids')) {
+                return; // Sudah dihandle di EditRequest
+            }
+            return;
+        }
+
+        // ✅ Status Selesai → unit diperbaiki kembali ke good, permanen ke permanent_broken
+        if ($newStatus === 'Selesai') {
+            // Unit yang diperbaiki → good
+            foreach ($request->fixedUnits as $ru) {
+                GoodUnit::find($ru->unit_id)?->update(['status' => 'good']);
+            }
+            // Unit rusak permanen → permanent_broken
+            foreach ($request->permanentUnits as $ru) {
+                GoodUnit::find($ru->unit_id)?->update(['status' => 'permanent_broken']);
+            }
+            // Unit yang masih rusak (sisa) → tetap broken
+        }
+
+        // ✅ Status Tidak Diperbaiki → semua unit rusak jadi permanent_broken
+        if ($newStatus === 'Tidak Diperbaiki') {
+            foreach ($request->brokenUnits as $ru) {
+                GoodUnit::find($ru->unit_id)?->update(['status' => 'permanent_broken']);
+            }
+        }
+
+        // ✅ Selesai → Dikerjakan (dibuka kembali) → kembalikan unit ke broken
+        if ($oldStatus === 'Selesai' && $newStatus === 'Dikerjakan') {
+            foreach ($request->fixedUnits as $ru) {
+                GoodUnit::find($ru->unit_id)?->update(['status' => 'broken']);
+            }
+            foreach ($request->permanentUnits as $ru) {
+                GoodUnit::find($ru->unit_id)?->update(['status' => 'broken']);
             }
         }
     }
 
     public function deleted(Request $request): void
     {
-        // ✅ Kembalikan status unit yang terkait
+        // ✅ Kembalikan status GoodUnit yang terkait
         foreach ($request->requestUnits as $ru) {
-            $unit = $ru->unit;
+            $unit = GoodUnit::find($ru->unit_id);
             if (!$unit) continue;
 
             if ($ru->type === 'rusak') {
-                // ✅ Kembalikan ke good
                 $unit->update(['status' => 'good']);
             } elseif ($ru->type === 'permanen') {
-                // ✅ Kembalikan ke broken
                 $unit->update(['status' => 'broken']);
             }
         }
@@ -243,7 +244,7 @@ class RequestObserver
         // ✅ Hapus request units
         $request->requestUnits()->delete();
 
-        // ✅ Logic infrastruktur yang sudah ada
+        // ✅ Logic infrastruktur lama
         if (!$request->infrastructure_id) return;
 
         $infra    = $request->infrastructure;

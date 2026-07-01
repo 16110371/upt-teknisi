@@ -69,6 +69,18 @@ class InventarisPage extends Page implements HasTable
         return $items;
     }
 
+    public function getStats(): array
+    {
+        $query = GoodUnit::where('location_id', $this->locationId);
+
+        return [
+            'total'     => (clone $query)->count(),
+            'good'      => (clone $query)->where('status', 'good')->count(),
+            'broken'    => (clone $query)->where('status', 'broken')->count(),
+            'permanent' => (clone $query)->where('status', 'permanent_broken')->count(),
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -97,6 +109,22 @@ class InventarisPage extends Page implements HasTable
                 TextColumn::make('good.brand')
                     ->label('Merk')
                     ->default('-'),
+
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'good'             => 'success',
+                        'broken'           => 'warning',
+                        'permanent_broken' => 'danger',
+                        default            => 'gray',
+                    })
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'good'             => '✅ Baik',
+                        'broken'           => '🔧 Rusak',
+                        'permanent_broken' => '❌ Permanen',
+                        default            => $state,
+                    }),
 
                 TextColumn::make('good.funding_source')
                     ->label('Dana')
